@@ -126,21 +126,22 @@ const ProfileModal = ({ user, token, onClose, onUpdate }) => {
             <Label htmlFor="pro_affiliation" className="text-sm font-medium mb-2 block">
               PRO Affiliation <span className="text-red-500">*</span>
             </Label>
-            <Select 
-              value={formData.pro_affiliation} 
-              onValueChange={(value) => handleSelectChange('pro_affiliation', value)}
+            <select
+              id="pro_affiliation"
+              name="pro_affiliation"
+              value={formData.pro_affiliation}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-3 bg-[#121212] border border-white/10 rounded-md text-white focus:border-[#FFB800] focus:outline-none"
+              data-testid="profile-pro-select"
             >
-              <SelectTrigger className="bg-[#121212] border-white/10 text-white" data-testid="profile-pro-select">
-                <SelectValue placeholder="Select PRO" />
-              </SelectTrigger>
-              <SelectContent className="bg-[#121212] border-white/10 text-white">
-                <SelectItem value="ASCAP">ASCAP</SelectItem>
-                <SelectItem value="BMI">BMI</SelectItem>
-                <SelectItem value="SESAC">SESAC</SelectItem>
-                <SelectItem value="Other">Other</SelectItem>
-                <SelectItem value="None">None</SelectItem>
-              </SelectContent>
-            </Select>
+              <option value="">Select PRO</option>
+              <option value="ASCAP">ASCAP</option>
+              <option value="BMI">BMI</option>
+              <option value="SESAC">SESAC</option>
+              <option value="Other">Other</option>
+              <option value="None">None</option>
+            </select>
           </div>
 
           <div>
