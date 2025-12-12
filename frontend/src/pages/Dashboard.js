@@ -110,6 +110,14 @@ const Dashboard = ({ token, logout, user, setUser }) => {
           </div>
           
           <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate("/network")}
+              className="btn-secondary text-sm flex items-center gap-2"
+              data-testid="network-btn"
+            >
+              <Users size={16} />
+              Network
+            </button>
             {!currentUser?.is_pro && (
               <button
                 onClick={handleUpgradeToPro}
