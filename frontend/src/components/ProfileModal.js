@@ -108,6 +108,39 @@ const ProfileModal = ({ user, token, onClose, onUpdate }) => {
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6 py-4">
+          {/* Photo Upload */}
+          <div>
+            <Label className="text-sm font-medium mb-2 block">
+              Profile Photo (Optional)
+            </Label>
+            <div className="flex items-center gap-4">
+              <div className="w-24 h-24 bg-[#121212] rounded-full flex items-center justify-center overflow-hidden border border-white/10">
+                {photoPreview ? (
+                  <img src={photoPreview} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-4xl text-gray-600">{formData.artist_name?.charAt(0) || "?"}</span>
+                )}
+              </div>
+              <div className="flex-1">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoChange}
+                  className="hidden"
+                  id="photo-upload"
+                  data-testid="profile-photo-input"
+                />
+                <label
+                  htmlFor="photo-upload"
+                  className="btn-secondary text-sm cursor-pointer inline-block"
+                >
+                  Choose Photo
+                </label>
+                <p className="text-xs text-gray-400 mt-1">Max 2MB, JPG/PNG</p>
+              </div>
+            </div>
+          </div>
+
           <div>
             <Label htmlFor="legal_name" className="text-sm font-medium mb-2 block">
               Legal Full Name <span className="text-red-500">*</span>
