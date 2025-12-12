@@ -307,8 +307,11 @@ async def complete_profile(profile_data: ProfileComplete, current_user: User = D
             "country": profile_data.country,
             "pro_affiliation": profile_data.pro_affiliation,
             "publisher": profile_data.publisher,
-            "role": profile_data.role,
+            "role": profile_data.role,  # Keep for backwards compatibility
+            "roles": profile_data.roles,
+            "music_styles": profile_data.music_styles,
             "bio": profile_data.bio,
+            "photo_url": profile_data.photo_url,
             "profile_completed": True
         }}
     )
