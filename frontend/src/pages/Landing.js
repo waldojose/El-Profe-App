@@ -11,6 +11,29 @@ const Landing = () => {
     <div className="min-h-screen bg-[#050505] text-white overflow-x-hidden relative">
       <div className="noise-overlay"></div>
       
+      {/* Animated Accent Dots */}
+      {[...Array(5)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute w-2 h-2 bg-[#FFB800] rounded-full"
+          style={{
+            top: `${20 + i * 15}%`,
+            left: `${10 + i * 20}%`,
+            opacity: 0.2
+          }}
+          animate={{
+            scale: [1, 1.5, 1],
+            opacity: [0.2, 0.4, 0.2]
+          }}
+          transition={{
+            duration: 3 + i,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: i * 0.5
+          }}
+        />
+      ))}
+      
       {/* Navigation */}
       <motion.nav 
         className="backdrop-studio fixed top-0 w-full z-50 border-b border-white/10"
