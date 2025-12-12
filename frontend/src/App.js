@@ -43,6 +43,14 @@ function App() {
             path="/editor/:songId"
             element={token ? <Editor token={token} user={user} /> : <Navigate to="/auth" />}
           />
+          <Route
+            path="/network"
+            element={token ? <Network token={token} user={user} /> : <Navigate to="/auth" />}
+          />
+          <Route
+            path="/messages"
+            element={token ? <Messages token={token} user={user} /> : <Navigate to="/auth" />}
+          />
         </Routes>
       </BrowserRouter>
       <Toaster />
