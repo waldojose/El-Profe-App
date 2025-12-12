@@ -304,13 +304,15 @@ const Landing = () => {
                 </li>
               </ul>
               
-              <button
+              <motion.button
                 onClick={() => navigate("/auth?mode=signup")}
                 className="btn-primary w-full glow-amber"
                 data-testid="pricing-pro-cta"
+                whileHover={{ scale: 1.05, boxShadow: "0 0 50px rgba(255, 184, 0, 0.5)" }}
+                whileTap={{ scale: 0.95 }}
               >
                 Start Pro Trial
-              </button>
+              </motion.button>
             </motion.div>
           </div>
         </div>
