@@ -91,6 +91,10 @@ class User(BaseModel):
     role: Optional[str] = None
     is_pro: bool = False
     profile_completed: bool = False
+    bio: Optional[str] = None
+    referral_code: Optional[str] = None
+    referred_by: Optional[str] = None
+    credits: int = 0
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class Song(BaseModel):
