@@ -883,6 +883,130 @@ async def mark_message_read(message_id: str, current_user: User = Depends(get_cu
     
     return {"message": "Marked as read"}
 
+# Collaboration Invites
+@api_router.post("/invites/send")
+async def send_collaboration_invite(invite_data: InviteCreate, current_user: User = Depends(get_current_user)):
+    # Check song exists and user has access
+    song = await db.songs.find_one({"id": invite_data.song_id})
+    if not song:
+        raise HTTPException(status_code=404, detail="Song not found")
+    
+    if current_user.id not in song.get("collaborators", []) and song.get("created_by") != current_user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Check invitee exists
+    invitee = await db.users.find_one({"id": invite_data.invitee_id})
+    if not invitee:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Create invite
+    invite = CollaborationInvite(
+        song_id=invite_data.song_id,
+        inviter_id=current_user.id,
+        invitee_id=invite_data.invitee_id,
+        message=invite_data.message
+    )
+    
+    invite_dict = invite.model_dump()
+    invite_dict["created_at"] = invite_dict["created_at"].isoformat()
+    
+    await db.collaboration_invites.insert_one(invite_dict)
+    
+    # Also send a message
+    message = Message(
+        sender_id=current_user.id,
+        receiver_id=invite_data.invitee_id,
+        content=f"🎵 Collaboration Invite: {song['title']}\n\n{invite_data.message}\n\nCheck your invites to accept!"
+    )
+    
+    message_dict = message.model_dump()
+    message_dict["created_at"] = message_dict["created_at"].isoformat()
+    await db.messages.insert_one(message_dict)
+    
+    return invite
+
+@api_router.get("/invites")
+async def get_invites(current_user: User = Depends(get_current_user)):
+    invites = await db.collaboration_invites.find(
+        {"invitee_id": current_user.id},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(100)
+    
+    for invite in invites:
+        if isinstance(invite.get("created_at"), str):
+            invite["created_at"] = datetime.fromisoformat(invite["created_at"])
+    
+    # Get song and inviter details
+    for invite in invites:
+        song = await db.songs.find_one({"id": invite["song_id"]}, {"_id": 0, "title": 1})
+        inviter = await db.users.find_one(
+            {"id": invite["inviter_id"]}, 
+            {"_id": 0, "artist_name": 1, "role": 1}
+        )
+        invite["song"] = song
+        invite["inviter"] = inviter
+    
+    return invites
+
+@api_router.post("/invites/{invite_id}/accept")
+async def accept_invite(invite_id: str, current_user: User = Depends(get_current_user)):
+    invite = await db.collaboration_invites.find_one({"id": invite_id, "invitee_id": current_user.id})
+    if not invite:
+        raise HTTPException(status_code=404, detail="Invite not found")
+    
+    if invite["status"] != "pending":
+        raise HTTPException(status_code=400, detail="Invite already processed")
+    
+    # Add user to song collaborators
+    await db.songs.update_one(
+        {"id": invite["song_id"]},
+        {"$addToSet": {"collaborators": current_user.id}}
+    )
+    
+    # Update invite status
+    await db.collaboration_invites.update_one(
+        {"id": invite_id},
+        {"$set": {"status": "accepted"}}
+    )
+    
+    return {"message": "Invite accepted", "song_id": invite["song_id"]}
+
+@api_router.post("/invites/{invite_id}/decline")
+async def decline_invite(invite_id: str, current_user: User = Depends(get_current_user)):
+    invite = await db.collaboration_invites.find_one({"id": invite_id, "invitee_id": current_user.id})
+    if not invite:
+        raise HTTPException(status_code=404, detail="Invite not found")
+    
+    await db.collaboration_invites.update_one(
+        {"id": invite_id},
+        {"$set": {"status": "declined"}}
+    )
+    
+    return {"message": "Invite declined"}
+
+# Referral system
+@api_router.get("/referrals/stats")
+async def get_referral_stats(current_user: User = Depends(get_current_user)):
+    # Count referred users
+    referred_users = await db.users.count_documents({"referred_by": current_user.id})
+    
+    # Count referred Pro users
+    referred_pro = await db.users.count_documents({"referred_by": current_user.id, "is_pro": True})
+    
+    # Get credit transactions
+    transactions = await db.credit_transactions.find(
+        {"user_id": current_user.id},
+        {"_id": 0}
+    ).sort("created_at", -1).limit(10).to_list(10)
+    
+    return {
+        "referral_code": current_user.referral_code,
+        "total_referrals": referred_users,
+        "pro_referrals": referred_pro,
+        "credits": current_user.credits,
+        "recent_transactions": transactions
+    }
+
 # Export PDF
 @api_router.get("/export/split-sheet/{proposal_id}")
 async def export_split_sheet(proposal_id: str, current_user: User = Depends(get_current_user)):
