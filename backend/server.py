@@ -174,6 +174,21 @@ class MessageCreate(BaseModel):
     receiver_id: str
     content: str
 
+class CollaborationInvite(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    song_id: str
+    inviter_id: str
+    invitee_id: str
+    message: str
+    status: str = "pending"  # pending, accepted, declined
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class InviteCreate(BaseModel):
+    song_id: str
+    invitee_id: str
+    message: str
+
 class UserPublicProfile(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str
