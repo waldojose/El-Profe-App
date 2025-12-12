@@ -77,6 +77,7 @@ class ProfileComplete(BaseModel):
     pro_affiliation: str
     publisher: Optional[str] = None
     role: str
+    bio: Optional[str] = None
 
 class User(BaseModel):
     model_config = ConfigDict(extra="ignore")
