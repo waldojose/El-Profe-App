@@ -271,6 +271,7 @@ async def complete_profile(profile_data: ProfileComplete, current_user: User = D
             "pro_affiliation": profile_data.pro_affiliation,
             "publisher": profile_data.publisher,
             "role": profile_data.role,
+            "bio": profile_data.bio,
             "profile_completed": True
         }}
     )
