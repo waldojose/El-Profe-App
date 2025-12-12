@@ -162,17 +162,41 @@ class ProfessorAppTester:
             return False
 
     def test_free_plan_limits(self):
-        """Test free plan song creation limits"""
-        if not self.token:
-            self.log_test("Free Plan Limits", False, "No token available")
-            return False
-            
+        """Test free plan song creation limits with fresh user"""
+        # Create a fresh user for this test to avoid conflicts with previous song creations
+        test_email = f"limits_{datetime.now().strftime('%H%M%S')}@example.com"
+        reg_data = {
+            "email": test_email,
+            "password": "TestPass123!",
+            "artist_name": "Limits Test"
+        }
+        
         try:
-            headers = {"Authorization": f"Bearer {self.token}"}
+            # Register new user
+            reg_response = requests.post(f"{self.api_url}/auth/register", json=reg_data)
+            if reg_response.status_code != 200:
+                self.log_test("Free Plan Limits", False, "Failed to register test user")
+                return False
+                
+            token = reg_response.json().get("token")
+            headers = {"Authorization": f"Bearer {token}"}
+            
+            # Complete profile
+            profile_data = {
+                "legal_name": "Limits Test User",
+                "artist_name": "Limits Test",
+                "country": "United States", 
+                "pro_affiliation": "ASCAP",
+                "role": "writer"
+            }
+            profile_response = requests.post(f"{self.api_url}/profile/complete", json=profile_data, headers=headers)
+            if profile_response.status_code != 200:
+                self.log_test("Free Plan Limits", False, "Failed to complete profile")
+                return False
             
             # Try to create 4 songs (should fail on 4th)
             for i in range(4):
-                data = {"title": f"Test Song {i+1}"}
+                data = {"title": f"Limits Test Song {i+1}"}
                 response = requests.post(f"{self.api_url}/songs", json=data, headers=headers)
                 
                 if i < 3:
