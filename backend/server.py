@@ -719,6 +719,23 @@ async def get_synonyms(word: str):
 @api_router.post("/subscription/upgrade")
 async def upgrade_to_pro(current_user: User = Depends(get_current_user)):
     await db.users.update_one({"id": current_user.id}, {"$set": {"is_pro": True}})
+    
+    # Give credits to referrer if user was referred
+    if current_user.referred_by:
+        await db.users.update_one(
+            {"id": current_user.referred_by},
+            {"$inc": {"credits": 10}}  # Give 10 credits for Pro upgrade
+        )
+        
+        # Log the credit transaction
+        await db.credit_transactions.insert_one({
+            "id": str(uuid.uuid4()),
+            "user_id": current_user.referred_by,
+            "amount": 10,
+            "reason": f"Referral upgrade: {current_user.artist_name or current_user.email}",
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+    
     return {"message": "Upgraded to Pro", "is_pro": True}
 
 # Social Network - Discover Users
