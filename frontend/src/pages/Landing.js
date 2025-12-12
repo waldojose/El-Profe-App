@@ -258,6 +258,8 @@ const Landing = () => {
               initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
+              whileHover={{ y: -12, scale: 1.03 }}
+              transition={{ type: "spring", stiffness: 300 }}
               data-testid="pricing-pro-card"
             >
               <div className="flex items-center justify-between mb-2">
