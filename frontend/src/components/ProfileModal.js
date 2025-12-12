@@ -16,7 +16,8 @@ const ProfileModal = ({ user, token, onClose, onUpdate }) => {
     country: user?.country || "",
     pro_affiliation: user?.pro_affiliation || "",
     publisher: user?.publisher || "",
-    role: user?.role || ""
+    role: user?.role || "",
+    bio: user?.bio || ""
   });
   const [loading, setLoading] = useState(false);
   const isRequired = !user?.profile_completed;
