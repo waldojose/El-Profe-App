@@ -194,12 +194,26 @@ const Network = ({ token, user }) => {
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-[#FFB800]/20 rounded-full flex items-center justify-center text-[#FFB800] font-bold text-xl">
-                      {creator.artist_name?.charAt(0) || '?'}
+                    <div className="w-12 h-12 bg-[#FFB800]/20 rounded-full flex items-center justify-center text-[#FFB800] font-bold text-xl overflow-hidden">
+                      {creator.photo_url ? (
+                        <img src={creator.photo_url} alt={creator.artist_name} className="w-full h-full object-cover" />
+                      ) : (
+                        creator.artist_name?.charAt(0) || '?'
+                      )}
                     </div>
                     <div>
                       <h3 className="font-bold text-lg">{creator.artist_name}</h3>
-                      <p className="text-sm text-gray-500 capitalize">{creator.role}</p>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {creator.roles && creator.roles.length > 0 ? (
+                          creator.roles.map(role => (
+                            <span key={role} className="text-xs bg-white/10 px-2 py-0.5 rounded capitalize">
+                              {role}
+                            </span>
+                          ))
+                        ) : (
+                          <p className="text-sm text-gray-500 capitalize">{creator.role}</p>
+                        )}
+                      </div>
                     </div>
                   </div>
                   {creator.is_pro && (
@@ -209,6 +223,16 @@ const Network = ({ token, user }) => {
                     </div>
                   )}
                 </div>
+
+                {creator.music_styles && creator.music_styles.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    {creator.music_styles.map(style => (
+                      <span key={style} className="text-xs bg-[#FFB800]/10 text-[#FFB800] px-2 py-1 rounded-sm">
+                        {style}
+                      </span>
+                    ))}
+                  </div>
+                )}
 
                 {creator.bio && (
                   <p className="text-sm text-gray-400 mb-4 line-clamp-2">{creator.bio}</p>
