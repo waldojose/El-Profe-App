@@ -202,7 +202,14 @@ const Editor = ({ token, user }) => {
               Collaborators
             </h3>
             <div className="space-y-2 text-xs text-gray-400">
-              <p>You + {(song?.collaborators?.length || 1) - 1} others</p>
+              <p className="mb-3">Total: {song?.collaborators?.length || 1}</p>
+              <button
+                onClick={() => setShowAddCollaborator(true)}
+                className="w-full px-3 py-2 bg-[#FFB800] text-black text-xs font-bold rounded-sm hover:bg-[#e0a600] transition-colors"
+                data-testid="add-collaborator-btn"
+              >
+                + Add Writer
+              </button>
             </div>
           </div>
         </div>
