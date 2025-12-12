@@ -75,20 +75,26 @@ const Landing = () => {
                 ensures fair splits, and generates legally defensible documentation.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <button
+                <motion.button
                   onClick={() => navigate("/auth?mode=signup")}
                   className="btn-primary glow-amber"
                   data-testid="hero-start-free-btn"
+                  whileHover={{ scale: 1.05, boxShadow: "0 0 40px rgba(255, 184, 0, 0.4)" }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 400 }}
                 >
                   Start Free
-                </button>
-                <button
+                </motion.button>
+                <motion.button
                   onClick={() => document.getElementById('pricing').scrollIntoView({ behavior: 'smooth' })}
                   className="btn-secondary"
                   data-testid="hero-go-pro-btn"
+                  whileHover={{ scale: 1.05, borderColor: "rgba(255, 184, 0, 0.6)" }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 400 }}
                 >
                   Go Pro
-                </button>
+                </motion.button>
               </div>
             </motion.div>
           </div>
