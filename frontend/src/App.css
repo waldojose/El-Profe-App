@@ -1,34 +1,141 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+.App {
+  min-height: 100vh;
+  background: #050505;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+.noise-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='4' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  z-index: 1;
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+.glow-amber {
+  box-shadow: 0 0 30px rgba(255, 184, 0, 0.2);
 }
 
-.App-link {
-    color: #61dafb;
+.glow-red {
+  box-shadow: 0 0 20px rgba(255, 59, 48, 0.3);
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+.gradient-glow {
+  background: radial-gradient(circle at center, rgba(255, 184, 0, 0.1) 0%, rgba(0, 0, 0, 0) 70%);
+}
+
+.backdrop-studio {
+  backdrop-filter: blur(24px);
+  background: rgba(10, 10, 10, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.scroll-fade {
+  mask-image: linear-gradient(to bottom, black 90%, transparent 100%);
+}
+
+.editable-lyrics {
+  min-height: 400px;
+  padding: 1.5rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1rem;
+  line-height: 1.8;
+  color: #fafafa;
+  background: rgba(18, 18, 18, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.editable-lyrics:focus {
+  border-color: #FFB800;
+}
+
+.btn-primary {
+  background: #FFB800;
+  color: #000;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.75rem 2rem;
+  border-radius: 2px;
+  transition: background 0.3s, transform 0.2s;
+}
+
+.btn-primary:hover {
+  background: #e0a600;
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  color: white;
+  padding: 0.75rem 2rem;
+  border-radius: 2px;
+  transition: background 0.3s, border-color 0.3s;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.hero-image {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 50%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.3;
+  mask-image: linear-gradient(to left, black 30%, transparent 100%);
+}
+
+.feature-card {
+  background: rgba(10, 10, 10, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  padding: 2rem;
+  transition: border-color 0.3s, transform 0.3s;
+}
+
+.feature-card:hover {
+  border-color: rgba(255, 184, 0, 0.5);
+  transform: translateY(-4px);
+}
+
+.pricing-card {
+  background: rgba(10, 10, 10, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  padding: 2.5rem;
+  transition: border-color 0.3s, transform 0.3s;
+}
+
+.pricing-card.pro {
+  border-color: #FFB800;
+  position: relative;
+}
+
+.pricing-card.pro::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #FFB800, #FF3B30, #D946EF);
+  border-radius: 4px;
+  z-index: -1;
+  opacity: 0.3;
+  filter: blur(10px);
+}
+
+.pricing-card:hover {
+  transform: translateY(-4px);
 }
