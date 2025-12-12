@@ -186,6 +186,10 @@ class ProfessorAppTester:
                     self.log_test("Free Plan Limits", success, 
                                  f"4th song status: {response.status_code}" if not success else "")
                     return success
+            
+            # If we get here, all 4 songs were created (which shouldn't happen)
+            self.log_test("Free Plan Limits", False, "All 4 songs were created - limit not enforced")
+            return False
                     
         except Exception as e:
             self.log_test("Free Plan Limits", False, str(e))
