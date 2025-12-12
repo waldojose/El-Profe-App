@@ -76,8 +76,11 @@ class ProfileComplete(BaseModel):
     country: str
     pro_affiliation: str
     publisher: Optional[str] = None
-    role: str
+    role: str  # Legacy, kept for backwards compatibility
+    roles: List[str] = []
+    music_styles: List[str] = []
     bio: Optional[str] = None
+    photo_url: Optional[str] = None
 
 class User(BaseModel):
     model_config = ConfigDict(extra="ignore")
