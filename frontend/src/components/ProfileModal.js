@@ -227,25 +227,57 @@ const ProfileModal = ({ user, token, onClose, onUpdate }) => {
           </div>
 
           <div>
-            <Label htmlFor="role" className="text-sm font-medium mb-2 block">
-              Role <span className="text-red-500">*</span>
+            <Label className="text-sm font-medium mb-2 block">
+              Roles <span className="text-red-500">*</span> <span className="text-gray-500 font-normal">(Select all that apply)</span>
             </Label>
-            <select
-              id="role"
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-3 bg-[#121212] border border-white/10 rounded-md text-white focus:border-[#FFB800] focus:outline-none"
-              data-testid="profile-role-select"
-            >
-              <option value="">Select role</option>
-              <option value="writer">Writer</option>
-              <option value="producer">Producer</option>
-              <option value="composer">Composer</option>
-              <option value="manager">Manager</option>
-              <option value="publisher">Publisher</option>
-            </select>
+            <div className="grid grid-cols-2 gap-3">
+              {["Writer", "Producer", "Composer", "Manager", "Publisher"].map(role => (
+                <label
+                  key={role}
+                  className={`flex items-center gap-2 p-3 rounded-md border cursor-pointer transition-colors ${
+                    formData.roles.includes(role.toLowerCase())
+                      ? 'bg-[#FFB800]/20 border-[#FFB800]'
+                      : 'bg-[#121212] border-white/10 hover:border-white/30'
+                  }`}
+                  data-testid={`role-${role.toLowerCase()}`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={formData.roles.includes(role.toLowerCase())}
+                    onChange={() => handleRoleToggle(role.toLowerCase())}
+                    className="w-4 h-4 accent-[#FFB800]"
+                  />
+                  <span className="text-sm">{role}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <Label className="text-sm font-medium mb-2 block">
+              Music Styles (Optional) <span className="text-gray-500 font-normal">(Select your specialties)</span>
+            </Label>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              {["Pop", "Rock", "Hip-Hop", "R&B", "Country", "Jazz", "Electronic", "Latin", "Folk", "Classical", "Metal", "Indie"].map(style => (
+                <label
+                  key={style}
+                  className={`flex items-center gap-2 p-2 rounded-md border cursor-pointer transition-colors text-sm ${
+                    formData.music_styles.includes(style)
+                      ? 'bg-[#FFB800]/20 border-[#FFB800]'
+                      : 'bg-[#121212] border-white/10 hover:border-white/30'
+                  }`}
+                  data-testid={`style-${style.toLowerCase()}`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={formData.music_styles.includes(style)}
+                    onChange={() => handleMusicStyleToggle(style)}
+                    className="w-3 h-3 accent-[#FFB800]"
+                  />
+                  <span className="text-xs">{style}</span>
+                </label>
+              ))}
+            </div>
           </div>
 
           <div>
