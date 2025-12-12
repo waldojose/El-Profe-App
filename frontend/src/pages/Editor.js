@@ -296,6 +296,49 @@ const Editor = ({ token, user }) => {
           </Tabs>
         </div>
       </div>
+
+      {/* Add Collaborator Modal */}
+      <Dialog open={showAddCollaborator} onOpenChange={setShowAddCollaborator}>
+        <DialogContent className="bg-[#0A0A0A] border border-white/10 text-white" data-testid="add-collaborator-modal">
+          <DialogHeader>
+            <DialogTitle className="text-heading text-2xl">Add Collaborator</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <Label htmlFor="collaborator-email" className="text-sm font-medium mb-2 block">
+              Email Address
+            </Label>
+            <Input
+              id="collaborator-email"
+              type="email"
+              value={collaboratorEmail}
+              onChange={(e) => setCollaboratorEmail(e.target.value)}
+              placeholder="writer@example.com"
+              className="bg-[#121212] border-white/10 text-white"
+              data-testid="collaborator-email-input"
+            />
+            <p className="text-xs text-gray-400 mt-2">
+              Enter the email of a registered user to add them as a collaborator.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowAddCollaborator(false)}
+              className="border-white/20 bg-transparent hover:bg-white/5"
+              data-testid="cancel-add-collaborator-btn"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleAddCollaborator}
+              className="bg-[#FFB800] text-black hover:bg-[#e0a600] font-bold"
+              data-testid="confirm-add-collaborator-btn"
+            >
+              Add Collaborator
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
