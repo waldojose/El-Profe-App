@@ -350,6 +350,53 @@ async def delete_song(song_id: str, current_user: User = Depends(get_current_use
     await db.songs.delete_one({"id": song_id})
     return {"message": "Song deleted"}
 
+# Add collaborator to song
+@api_router.post("/songs/{song_id}/collaborators")
+async def add_collaborator(song_id: str, collaborator_data: Dict[str, Any], current_user: User = Depends(get_current_user)):
+    song = await db.songs.find_one({"id": song_id})
+    if not song:
+        raise HTTPException(status_code=404, detail="Song not found")
+    
+    if current_user.id not in song.get("collaborators", []) and song.get("created_by") != current_user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Find user by email
+    collaborator_email = collaborator_data.get("email")
+    collaborator = await db.users.find_one({"email": collaborator_email}, {"_id": 0, "password": 0})
+    
+    if not collaborator:
+        raise HTTPException(status_code=404, detail="User not found with that email")
+    
+    # Check if already a collaborator
+    if collaborator["id"] in song.get("collaborators", []):
+        raise HTTPException(status_code=400, detail="User is already a collaborator")
+    
+    # Add to collaborators
+    await db.songs.update_one(
+        {"id": song_id},
+        {"$push": {"collaborators": collaborator["id"]}}
+    )
+    
+    return {"message": "Collaborator added", "collaborator": collaborator}
+
+# Get song collaborators
+@api_router.get("/songs/{song_id}/collaborators")
+async def get_collaborators(song_id: str, current_user: User = Depends(get_current_user)):
+    song = await db.songs.find_one({"id": song_id})
+    if not song:
+        raise HTTPException(status_code=404, detail="Song not found")
+    
+    if current_user.id not in song.get("collaborators", []) and song.get("created_by") != current_user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    collaborator_ids = song.get("collaborators", [])
+    collaborators = await db.users.find(
+        {"id": {"$in": collaborator_ids}},
+        {"_id": 0, "id": 1, "email": 1, "artist_name": 1, "legal_name": 1}
+    ).to_list(1000)
+    
+    return collaborators
+
 # Contribution tracking
 @api_router.post("/contributions")
 async def log_contribution(log_data: Dict[str, Any], current_user: User = Depends(get_current_user)):
