@@ -156,6 +156,31 @@ class Version(BaseModel):
     snapshot_type: str
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+class Message(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    sender_id: str
+    receiver_id: str
+    content: str
+    read: bool = False
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class MessageCreate(BaseModel):
+    receiver_id: str
+    content: str
+
+class UserPublicProfile(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    artist_name: str
+    legal_name: Optional[str] = None
+    role: Optional[str] = None
+    country: Optional[str] = None
+    pro_affiliation: Optional[str] = None
+    is_pro: bool = False
+    bio: Optional[str] = None
+    created_at: datetime
+
 # Helper functions
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
