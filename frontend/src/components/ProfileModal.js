@@ -163,21 +163,22 @@ const ProfileModal = ({ user, token, onClose, onUpdate }) => {
             <Label htmlFor="role" className="text-sm font-medium mb-2 block">
               Role <span className="text-red-500">*</span>
             </Label>
-            <Select 
-              value={formData.role} 
-              onValueChange={(value) => handleSelectChange('role', value)}
+            <select
+              id="role"
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-3 bg-[#121212] border border-white/10 rounded-md text-white focus:border-[#FFB800] focus:outline-none"
+              data-testid="profile-role-select"
             >
-              <SelectTrigger className="bg-[#121212] border-white/10 text-white" data-testid="profile-role-select">
-                <SelectValue placeholder="Select role" />
-              </SelectTrigger>
-              <SelectContent className="bg-[#121212] border-white/10 text-white">
-                <SelectItem value="writer">Writer</SelectItem>
-                <SelectItem value="producer">Producer</SelectItem>
-                <SelectItem value="composer">Composer</SelectItem>
-                <SelectItem value="manager">Manager</SelectItem>
-                <SelectItem value="publisher">Publisher</SelectItem>
-              </SelectContent>
-            </Select>
+              <option value="">Select role</option>
+              <option value="writer">Writer</option>
+              <option value="producer">Producer</option>
+              <option value="composer">Composer</option>
+              <option value="manager">Manager</option>
+              <option value="publisher">Publisher</option>
+            </select>
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
