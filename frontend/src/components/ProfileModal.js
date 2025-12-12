@@ -32,6 +32,38 @@ const ProfileModal = ({ user, token, onClose, onUpdate }) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleRoleToggle = (role) => {
+    const roles = formData.roles.includes(role)
+      ? formData.roles.filter(r => r !== role)
+      : [...formData.roles, role];
+    setFormData({ ...formData, roles, role: roles[0] || "" }); // Keep first role as primary for backwards compatibility
+  };
+
+  const handleMusicStyleToggle = (style) => {
+    const music_styles = formData.music_styles.includes(style)
+      ? formData.music_styles.filter(s => s !== style)
+      : [...formData.music_styles, style];
+    setFormData({ ...formData, music_styles });
+  };
+
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error("Photo must be less than 2MB");
+        return;
+      }
+      
+      setPhotoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result);
+        setFormData({ ...formData, photo_url: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
