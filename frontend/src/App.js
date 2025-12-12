@@ -34,6 +34,12 @@ function App() {
 
   return (
     <div className="App min-h-screen">
+      <AnimatePresence mode="wait">
+        {showSplash && (
+          <SplashScreen onComplete={() => setShowSplash(false)} />
+        )}
+      </AnimatePresence>
+      
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Landing />} />
