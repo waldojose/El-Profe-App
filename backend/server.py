@@ -688,6 +688,151 @@ async def upgrade_to_pro(current_user: User = Depends(get_current_user)):
     await db.users.update_one({"id": current_user.id}, {"$set": {"is_pro": True}})
     return {"message": "Upgraded to Pro", "is_pro": True}
 
+# Social Network - Discover Users
+@api_router.get("/users/discover")
+async def discover_users(
+    role: Optional[str] = None,
+    search: Optional[str] = None,
+    current_user: User = Depends(get_current_user)
+):
+    query = {"id": {"$ne": current_user.id}, "profile_completed": True}
+    
+    if role:
+        query["role"] = role
+    
+    if search:
+        query["$or"] = [
+            {"artist_name": {"$regex": search, "$options": "i"}},
+            {"legal_name": {"$regex": search, "$options": "i"}}
+        ]
+    
+    users = await db.users.find(
+        query,
+        {"_id": 0, "password": 0}
+    ).limit(50).to_list(50)
+    
+    for user in users:
+        if isinstance(user.get("created_at"), str):
+            user["created_at"] = datetime.fromisoformat(user["created_at"])
+    
+    return [UserPublicProfile(**user) for user in users]
+
+# Get user public profile
+@api_router.get("/users/{user_id}/profile")
+async def get_user_profile(user_id: str, current_user: User = Depends(get_current_user)):
+    user = await db.users.find_one({"id": user_id}, {"_id": 0, "password": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if isinstance(user.get("created_at"), str):
+        user["created_at"] = datetime.fromisoformat(user["created_at"])
+    
+    return UserPublicProfile(**user)
+
+# Messaging - Send message
+@api_router.post("/messages/send")
+async def send_message(message_data: MessageCreate, current_user: User = Depends(get_current_user)):
+    # Check if receiver exists
+    receiver = await db.users.find_one({"id": message_data.receiver_id})
+    if not receiver:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    message = Message(
+        sender_id=current_user.id,
+        receiver_id=message_data.receiver_id,
+        content=message_data.content
+    )
+    
+    message_dict = message.model_dump()
+    message_dict["created_at"] = message_dict["created_at"].isoformat()
+    
+    await db.messages.insert_one(message_dict)
+    return message
+
+# Get conversations
+@api_router.get("/messages/conversations")
+async def get_conversations(current_user: User = Depends(get_current_user)):
+    # Get all messages where user is sender or receiver
+    messages = await db.messages.find({
+        "$or": [
+            {"sender_id": current_user.id},
+            {"receiver_id": current_user.id}
+        ]
+    }, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    
+    # Group by conversation partner
+    conversations = {}
+    for msg in messages:
+        if isinstance(msg.get("created_at"), str):
+            msg["created_at"] = datetime.fromisoformat(msg["created_at"])
+        
+        partner_id = msg["receiver_id"] if msg["sender_id"] == current_user.id else msg["sender_id"]
+        
+        if partner_id not in conversations:
+            conversations[partner_id] = {
+                "partner_id": partner_id,
+                "last_message": msg,
+                "unread_count": 0
+            }
+        
+        # Count unread messages
+        if msg["receiver_id"] == current_user.id and not msg.get("read", False):
+            conversations[partner_id]["unread_count"] += 1
+    
+    # Get partner details
+    partner_ids = list(conversations.keys())
+    users = await db.users.find(
+        {"id": {"$in": partner_ids}},
+        {"_id": 0, "id": 1, "artist_name": 1, "role": 1}
+    ).to_list(1000)
+    
+    user_map = {u["id"]: u for u in users}
+    
+    result = []
+    for partner_id, conv in conversations.items():
+        if partner_id in user_map:
+            result.append({
+                **conv,
+                "partner": user_map[partner_id]
+            })
+    
+    return result
+
+# Get messages with specific user
+@api_router.get("/messages/{partner_id}")
+async def get_messages(partner_id: str, current_user: User = Depends(get_current_user)):
+    messages = await db.messages.find({
+        "$or": [
+            {"sender_id": current_user.id, "receiver_id": partner_id},
+            {"sender_id": partner_id, "receiver_id": current_user.id}
+        ]
+    }, {"_id": 0}).sort("created_at", 1).to_list(1000)
+    
+    for msg in messages:
+        if isinstance(msg.get("created_at"), str):
+            msg["created_at"] = datetime.fromisoformat(msg["created_at"])
+    
+    # Mark messages as read
+    await db.messages.update_many(
+        {"sender_id": partner_id, "receiver_id": current_user.id, "read": False},
+        {"$set": {"read": True}}
+    )
+    
+    return [Message(**msg) for msg in messages]
+
+# Mark message as read
+@api_router.patch("/messages/{message_id}/read")
+async def mark_message_read(message_id: str, current_user: User = Depends(get_current_user)):
+    result = await db.messages.update_one(
+        {"id": message_id, "receiver_id": current_user.id},
+        {"$set": {"read": True}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Message not found")
+    
+    return {"message": "Marked as read"}
+
 # Export PDF
 @api_router.get("/export/split-sheet/{proposal_id}")
 async def export_split_sheet(proposal_id: str, current_user: User = Depends(get_current_user)):
