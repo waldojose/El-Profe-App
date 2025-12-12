@@ -203,6 +203,8 @@ const Landing = () => {
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
+              whileHover={{ y: -8, scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 300 }}
               data-testid="pricing-free-card"
             >
               <h3 className="text-2xl font-bold mb-2">Free</h3>
