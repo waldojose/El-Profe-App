@@ -242,13 +242,15 @@ const Landing = () => {
                 </li>
               </ul>
               
-              <button
+              <motion.button
                 onClick={() => navigate("/auth?mode=signup")}
                 className="btn-secondary w-full"
                 data-testid="pricing-free-cta"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
                 Start Free
-              </button>
+              </motion.button>
             </motion.div>
 
             <motion.div
