@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import ContributionPanel from "../components/ContributionPanel";
 import SplitPanel from "../components/SplitPanel";
 import SynonymsPanel from "../components/SynonymsPanel";
+import LogoBadge from "../components/LogoBadge";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -339,6 +340,9 @@ const Editor = ({ token, user }) => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Floating Logo Badge */}
+      <LogoBadge />
     </div>
   );
 };
