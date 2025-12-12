@@ -154,6 +154,28 @@ const Editor = ({ token, user }) => {
     }
   };
 
+  const handleAddCollaborator = async () => {
+    if (!collaboratorEmail.trim()) {
+      toast.error("Please enter an email");
+      return;
+    }
+
+    try {
+      await axios.post(
+        `${API}/songs/${songId}/collaborators`,
+        { email: collaboratorEmail },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      toast.success("Collaborator added!");
+      setShowAddCollaborator(false);
+      setCollaboratorEmail("");
+      fetchSong(); // Refresh song data
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Failed to add collaborator");
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#050505] flex items-center justify-center">
