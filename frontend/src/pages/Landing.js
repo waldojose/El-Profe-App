@@ -81,20 +81,33 @@ const Landing = () => {
           className="hero-image"
         />
         
-        {/* Floating Logo Animation */}
+        {/* MASSIVE Central Logo with Epic Effects */}
         <motion.div
-          className="absolute top-1/4 right-1/4 opacity-10"
+          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+          initial={{ opacity: 0, scale: 0 }}
           animate={{ 
-            y: [0, -20, 0],
-            rotate: [0, 5, 0]
+            opacity: [0.15, 0.25, 0.15],
+            scale: [1, 1.05, 1],
+            rotate: [0, 2, -2, 0]
           }}
           transition={{ 
-            duration: 6,
+            duration: 8,
             repeat: Infinity,
             ease: "easeInOut"
           }}
         >
-          <img src={logoUrl} alt="" className="h-48 w-auto" />
+          <div className="relative">
+            {/* Glowing aura */}
+            <div className="absolute inset-0 blur-3xl opacity-50">
+              <img src={logoUrl} alt="" className="h-[600px] w-auto" />
+            </div>
+            {/* Main logo */}
+            <img 
+              src={logoUrl} 
+              alt="" 
+              className="h-[600px] w-auto relative z-10 filter drop-shadow-[0_0_100px_rgba(255,184,0,0.6)]" 
+            />
+          </div>
         </motion.div>
         
         <div className="max-w-7xl mx-auto relative z-10">
