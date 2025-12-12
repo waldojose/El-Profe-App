@@ -178,6 +178,22 @@ const ProfileModal = ({ user, token, onClose, onUpdate }) => {
             </select>
           </div>
 
+          <div>
+            <Label htmlFor="bio" className="text-sm font-medium mb-2 block">
+              Bio (Optional)
+            </Label>
+            <Textarea
+              id="bio"
+              name="bio"
+              value={formData.bio}
+              onChange={handleChange}
+              placeholder="Tell other creators about yourself and your music style..."
+              className="bg-[#121212] border-white/10 text-white min-h-[100px]"
+              data-testid="profile-bio-input"
+            />
+            <p className="text-xs text-gray-400 mt-1">This will be visible to other users in the network</p>
+          </div>
+
           <div className="flex justify-end gap-3 pt-4">
             {!isRequired && (
               <Button
