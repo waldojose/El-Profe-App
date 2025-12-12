@@ -160,9 +160,20 @@ const Landing = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1, duration: 0.5 }}
+                whileHover={{ 
+                  y: -8, 
+                  borderColor: "rgba(255, 184, 0, 0.5)",
+                  boxShadow: "0 8px 30px rgba(255, 184, 0, 0.15)"
+                }}
                 data-testid={`feature-card-${index}`}
               >
-                <div className="text-[#FFB800] mb-4">{feature.icon}</div>
+                <motion.div 
+                  className="text-[#FFB800] mb-4"
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  {feature.icon}
+                </motion.div>
                 <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
                 <p className="text-gray-400">{feature.description}</p>
               </motion.div>
