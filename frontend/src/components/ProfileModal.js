@@ -68,8 +68,8 @@ const ProfileModal = ({ user, token, onClose, onUpdate }) => {
     e.preventDefault();
     setLoading(true);
 
-    if (!formData.legal_name || !formData.artist_name || !formData.country || !formData.pro_affiliation || !formData.role) {
-      toast.error("Please fill all required fields");
+    if (!formData.legal_name || !formData.artist_name || !formData.country || !formData.pro_affiliation || formData.roles.length === 0) {
+      toast.error("Please fill all required fields and select at least one role");
       setLoading(false);
       return;
     }
