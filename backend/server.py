@@ -200,11 +200,14 @@ class UserPublicProfile(BaseModel):
     id: str
     artist_name: str
     legal_name: Optional[str] = None
-    role: Optional[str] = None
+    role: Optional[str] = None  # Legacy
+    roles: List[str] = []
+    music_styles: List[str] = []
     country: Optional[str] = None
     pro_affiliation: Optional[str] = None
     is_pro: bool = False
     bio: Optional[str] = None
+    photo_url: Optional[str] = None
     created_at: datetime
 
 # Helper functions
