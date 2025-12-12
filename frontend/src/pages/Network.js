@@ -301,6 +301,9 @@ const Network = ({ token, user }) => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Floating Logo Badge */}
+      <LogoBadge />
     </div>
   );
 };
