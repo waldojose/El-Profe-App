@@ -333,20 +333,24 @@ const Landing = () => {
               Join professional songwriters who trust Professor App for collaboration and legal documentation.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button
+              <motion.button
                 onClick={() => navigate("/auth?mode=signup")}
                 className="btn-primary glow-amber"
                 data-testid="final-cta-signup"
+                whileHover={{ scale: 1.05, boxShadow: "0 0 50px rgba(255, 184, 0, 0.5)" }}
+                whileTap={{ scale: 0.95 }}
               >
                 Create Free Account
-              </button>
-              <button
+              </motion.button>
+              <motion.button
                 onClick={() => navigate("/auth?mode=signup")}
                 className="btn-secondary"
                 data-testid="final-cta-pro"
+                whileHover={{ scale: 1.05, borderColor: "rgba(255, 184, 0, 0.6)" }}
+                whileTap={{ scale: 0.95 }}
               >
                 Upgrade to Pro
-              </button>
+              </motion.button>
             </div>
           </motion.div>
         </div>
