@@ -231,15 +231,27 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 
 # Auth endpoints
 @api_router.post("/auth/register")
-async def register(user_data: UserRegister):
+async def register(user_data: UserRegister, referral_code: Optional[str] = None):
     existing_user = await db.users.find_one({"email": user_data.email})
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     
+    # Generate unique referral code for new user
+    import random
+    import string
+    new_referral_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+    
     user = User(
         email=user_data.email,
-        artist_name=user_data.artist_name
+        artist_name=user_data.artist_name,
+        referral_code=new_referral_code
     )
+    
+    # Check if registered via referral
+    if referral_code:
+        referrer = await db.users.find_one({"referral_code": referral_code})
+        if referrer:
+            user.referred_by = referrer["id"]
     
     user_dict = user.model_dump()
     user_dict["password"] = hash_password(user_data.password)
