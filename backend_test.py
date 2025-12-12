@@ -282,19 +282,55 @@ class ProfessorAppTester:
             return False
 
     def test_split_management_pro_required(self):
-        """Test that split management requires Pro"""
-        if not self.token or not hasattr(self, 'song_id'):
-            self.log_test("Split Management (Pro Required)", False, "No token or song_id available")
-            return False
-            
-        data = {
-            "song_id": self.song_id,
-            "splits": [{"user_id": self.user_id, "percentage": 100}]
+        """Test that split management requires Pro with fresh free user"""
+        # Create a fresh free user for this test
+        test_email = f"free_{datetime.now().strftime('%H%M%S')}@example.com"
+        reg_data = {
+            "email": test_email,
+            "password": "TestPass123!",
+            "artist_name": "Free User"
         }
         
         try:
-            headers = {"Authorization": f"Bearer {self.token}"}
-            response = requests.post(f"{self.api_url}/splits", json=data, headers=headers)
+            # Register new user
+            reg_response = requests.post(f"{self.api_url}/auth/register", json=reg_data)
+            if reg_response.status_code != 200:
+                self.log_test("Split Management (Pro Required)", False, "Failed to register test user")
+                return False
+                
+            token = reg_response.json().get("token")
+            user_id = reg_response.json().get("user", {}).get("id")
+            headers = {"Authorization": f"Bearer {token}"}
+            
+            # Complete profile
+            profile_data = {
+                "legal_name": "Free User",
+                "artist_name": "Free User",
+                "country": "United States", 
+                "pro_affiliation": "ASCAP",
+                "role": "writer"
+            }
+            profile_response = requests.post(f"{self.api_url}/profile/complete", json=profile_data, headers=headers)
+            if profile_response.status_code != 200:
+                self.log_test("Split Management (Pro Required)", False, "Failed to complete profile")
+                return False
+                
+            # Create a song
+            song_data = {"title": "Free User Song"}
+            song_response = requests.post(f"{self.api_url}/songs", json=song_data, headers=headers)
+            if song_response.status_code != 200:
+                self.log_test("Split Management (Pro Required)", False, "Failed to create song")
+                return False
+                
+            song_id = song_response.json().get("id")
+            
+            # Try to create split (should fail for free user)
+            split_data = {
+                "song_id": song_id,
+                "splits": [{"user_id": user_id, "percentage": 100}]
+            }
+            
+            response = requests.post(f"{self.api_url}/splits", json=split_data, headers=headers)
             # Should fail with 403 for free users
             success = response.status_code == 403
             
