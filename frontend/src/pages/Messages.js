@@ -143,8 +143,12 @@ const Messages = ({ token, user }) => {
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-[#FFB800]/20 rounded-full flex items-center justify-center text-[#FFB800] font-bold">
-                          {conv.partner.artist_name?.charAt(0) || '?'}
+                        <div className="w-10 h-10 bg-[#FFB800]/20 rounded-full flex items-center justify-center text-[#FFB800] font-bold overflow-hidden">
+                          {conv.partner.photo_url ? (
+                            <img src={conv.partner.photo_url} alt={conv.partner.artist_name} className="w-full h-full object-cover" />
+                          ) : (
+                            conv.partner.artist_name?.charAt(0) || '?'
+                          )}
                         </div>
                         <div>
                           <p className="font-semibold text-sm">{conv.partner.artist_name}</p>
