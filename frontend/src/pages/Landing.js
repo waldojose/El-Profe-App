@@ -43,12 +43,37 @@ const Landing = () => {
       >
         <div className="max-w-7xl mx-auto px-6 md:px-12 py-4 flex justify-between items-center">
           <motion.div 
-            className="flex items-center gap-3 cursor-pointer"
+            className="flex items-center gap-3 cursor-pointer relative"
             onClick={() => navigate("/")}
-            whileHover={{ scale: 1.05 }}
+            whileHover={{ scale: 1.1 }}
             transition={{ type: "spring", stiffness: 400 }}
           >
-            <img src={logoUrl} alt="Professor App" className="h-12 w-auto" />
+            {/* Animated glow effect */}
+            <motion.div
+              className="absolute inset-0 blur-xl opacity-0"
+              whileHover={{ opacity: 0.6 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="w-full h-full bg-[#FFB800] rounded-full"></div>
+            </motion.div>
+            
+            <motion.img 
+              src={logoUrl} 
+              alt="Professor App" 
+              className="h-16 w-auto relative z-10 filter drop-shadow-[0_0_20px_rgba(255,184,0,0.4)]"
+              animate={{
+                filter: [
+                  "drop-shadow(0 0 20px rgba(255,184,0,0.4))",
+                  "drop-shadow(0 0 30px rgba(255,184,0,0.6))",
+                  "drop-shadow(0 0 20px rgba(255,184,0,0.4))"
+                ]
+              }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            />
           </motion.div>
           <div className="flex gap-4">
             <motion.button
