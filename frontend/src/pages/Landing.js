@@ -12,29 +12,43 @@ const Landing = () => {
       <div className="noise-overlay"></div>
       
       {/* Navigation */}
-      <nav className="backdrop-studio fixed top-0 w-full z-50 border-b border-white/10">
+      <motion.nav 
+        className="backdrop-studio fixed top-0 w-full z-50 border-b border-white/10"
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+      >
         <div className="max-w-7xl mx-auto px-6 md:px-12 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <img src={logoUrl} alt="Professor App" className="h-10 w-auto" />
-          </div>
+          <motion.div 
+            className="flex items-center gap-3 cursor-pointer"
+            onClick={() => navigate("/")}
+            whileHover={{ scale: 1.05 }}
+            transition={{ type: "spring", stiffness: 400 }}
+          >
+            <img src={logoUrl} alt="Professor App" className="h-12 w-auto" />
+          </motion.div>
           <div className="flex gap-4">
-            <button
+            <motion.button
               onClick={() => navigate("/auth")}
               className="btn-secondary text-sm"
               data-testid="nav-login-btn"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
               Login
-            </button>
-            <button
+            </motion.button>
+            <motion.button
               onClick={() => navigate("/auth?mode=signup")}
               className="btn-primary text-sm"
               data-testid="nav-signup-btn"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
               Start Free
-            </button>
+            </motion.button>
           </div>
         </div>
-      </nav>
+      </motion.nav>
 
       {/* Hero Section */}
       <section className="relative pt-32 pb-24 px-6 md:px-12 overflow-hidden">
