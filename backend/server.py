@@ -88,7 +88,10 @@ class User(BaseModel):
     country: Optional[str] = None
     pro_affiliation: Optional[str] = None
     publisher: Optional[str] = None
-    role: Optional[str] = None
+    role: Optional[str] = None  # Legacy field, kept for backwards compatibility
+    roles: List[str] = []  # New multi-select field
+    music_styles: List[str] = []
+    photo_url: Optional[str] = None
     is_pro: bool = False
     profile_completed: bool = False
     bio: Optional[str] = None
