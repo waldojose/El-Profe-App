@@ -500,21 +500,26 @@ async def get_versions(song_id: str, current_user: User = Depends(get_current_us
     
     return [Version(**version) for version in versions]
 
-# Synonyms tool
+# Synonyms tool - using Datamuse API
 @api_router.get("/synonyms/{word}")
 async def get_synonyms(word: str):
-    synonyms_dict = {
-        "love": ["affection", "devotion", "passion", "romance", "adoration"],
-        "heart": ["soul", "spirit", "core", "essence", "feeling"],
-        "night": ["evening", "darkness", "twilight", "dusk", "midnight"],
-        "dream": ["vision", "fantasy", "hope", "aspiration", "wish"],
-        "music": ["melody", "harmony", "tune", "rhythm", "sound"],
-        "shine": ["glow", "sparkle", "gleam", "radiate", "illuminate"],
-        "pain": ["ache", "suffering", "hurt", "agony", "sorrow"],
-        "happy": ["joyful", "cheerful", "content", "delighted", "pleased"],
-        "sad": ["melancholy", "sorrowful", "blue", "downcast", "gloomy"]
-    }
-    return {"word": word, "synonyms": synonyms_dict.get(word.lower(), [])}
+    try:
+        import requests
+        # Use Datamuse API for synonyms
+        response = requests.get(f"https://api.datamuse.com/words", params={
+            "rel_syn": word.lower(),
+            "max": 20
+        }, timeout=5)
+        
+        if response.status_code == 200:
+            data = response.json()
+            synonyms = [item["word"] for item in data[:15]]  # Limit to 15 results
+            return {"word": word, "synonyms": synonyms}
+        else:
+            return {"word": word, "synonyms": []}
+    except Exception as e:
+        logger.error(f"Error fetching synonyms: {e}")
+        return {"word": word, "synonyms": []}
 
 # Subscription
 @api_router.post("/subscription/upgrade")
