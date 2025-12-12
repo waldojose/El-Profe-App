@@ -44,9 +44,26 @@ const ContributionPanel = ({ songId, token }) => {
         <h3 className="font-bold text-lg">Contributions</h3>
       </div>
 
-      <div className="mb-6 p-4 bg-[#121212] rounded-sm">
+      <div className="mb-6 p-4 bg-[#121212] rounded-sm border border-[#FFB800]/30">
         <p className="text-xs text-gray-500 mb-1">Total Characters</p>
         <p className="text-2xl font-bold text-mono text-[#FFB800]">{totalChars}</p>
+        <p className="text-xs text-gray-400 mt-2">{contributions.length} collaborator(s)</p>
+      </div>
+
+      <div className="mb-6 p-4 bg-gradient-to-r from-[#FFB800]/10 to-[#FF3B30]/10 rounded-sm border border-[#FFB800]/50">
+        <p className="text-xs font-bold text-[#FFB800] mb-3">📊 CONTRIBUTION PERCENTAGES</p>
+        {contributions.map((contrib, index) => {
+          const percentage = totalChars > 0 ? ((contrib.net_chars / totalChars) * 100).toFixed(1) : 0;
+          return (
+            <div key={contrib.user_id} className="flex items-center justify-between mb-2">
+              <span className="text-sm font-semibold">{contrib.artist_name}</span>
+              <span className="text-lg font-bold text-[#FFB800] text-mono">{percentage}%</span>
+            </div>
+          );
+        })}
+        <p className="text-xs text-gray-500 mt-3 italic">
+          ⚠️ For reference only - manual split decisions required
+        </p>
       </div>
 
       <div className="space-y-4">
