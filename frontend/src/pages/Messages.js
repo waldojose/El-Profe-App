@@ -7,6 +7,7 @@ import { ArrowLeft, MessageCircle, Send, Check, CheckCheck } from "lucide-react"
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import LogoBadge from "../components/LogoBadge";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
