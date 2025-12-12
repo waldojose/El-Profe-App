@@ -289,11 +289,13 @@ const ProfileModal = ({ user, token, onClose, onUpdate }) => {
               name="bio"
               value={formData.bio}
               onChange={handleChange}
-              placeholder="Tell other creators about yourself and your music style..."
-              className="bg-[#121212] border-white/10 text-white min-h-[100px]"
+              placeholder="Example: Award-winning songwriter specializing in Pop and R&B. 10+ years experience. Collaborated with artists like John Legend, Ariana Grande, and The Weeknd. Currently working on sync licensing for TV/Film. Open to co-writing sessions and remote collaborations."
+              className="bg-[#121212] border-white/10 text-white min-h-[120px]"
               data-testid="profile-bio-input"
             />
-            <p className="text-xs text-gray-400 mt-1">This will be visible to other users in the network</p>
+            <p className="text-xs text-gray-400 mt-1">
+              💡 <strong>Tip:</strong> Mention your experience, artists you've worked with, and what you're looking for
+            </p>
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
