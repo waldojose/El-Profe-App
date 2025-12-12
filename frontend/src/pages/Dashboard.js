@@ -327,6 +327,9 @@ const Dashboard = ({ token, logout, user, setUser }) => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Floating Logo Badge */}
+      <LogoBadge />
     </div>
   );
 };
