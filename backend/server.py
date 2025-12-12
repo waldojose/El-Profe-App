@@ -547,12 +547,13 @@ async def get_versions(song_id: str, current_user: User = Depends(get_current_us
     
     return [Version(**version) for version in versions]
 
-# Synonyms tool - using Datamuse API
+# Synonyms tool - using Datamuse API (English) and Spanish fallback
 @api_router.get("/synonyms/{word}")
 async def get_synonyms(word: str):
     try:
         import requests
-        # Use Datamuse API for synonyms
+        
+        # Try English first with Datamuse API
         response = requests.get(f"https://api.datamuse.com/words", params={
             "rel_syn": word.lower(),
             "max": 20
@@ -560,13 +561,101 @@ async def get_synonyms(word: str):
         
         if response.status_code == 200:
             data = response.json()
-            synonyms = [item["word"] for item in data[:15]]  # Limit to 15 results
-            return {"word": word, "synonyms": synonyms}
-        else:
-            return {"word": word, "synonyms": []}
+            synonyms = [item["word"] for item in data[:15]]
+            
+            # If we got English results, return them
+            if synonyms:
+                return {"word": word, "synonyms": synonyms, "language": "en"}
+        
+        # If no English results, try Spanish dictionary
+        spanish_synonyms = {
+            "amor": ["cariño", "afecto", "pasión", "ternura", "adoración", "devoción"],
+            "corazón": ["alma", "espíritu", "sentimiento", "pecho", "centro"],
+            "noche": ["oscuridad", "anochecer", "medianoche", "madrugada", "tarde"],
+            "sueño": ["ensueño", "ilusión", "fantasía", "deseo", "anhelo", "aspiración"],
+            "música": ["melodía", "armonía", "sonido", "canción", "ritmo", "compás"],
+            "luz": ["brillo", "resplandor", "claridad", "luminosidad", "fulgor"],
+            "dolor": ["sufrimiento", "pena", "angustia", "tormento", "aflicción"],
+            "feliz": ["alegre", "contento", "dichoso", "radiante", "jubiloso"],
+            "triste": ["melancólico", "apenado", "afligido", "sombrío", "deprimido"],
+            "tiempo": ["momento", "época", "periodo", "instante", "era"],
+            "vida": ["existencia", "vivencia", "experiencia", "aliento", "espíritu"],
+            "muerte": ["fin", "fallecimiento", "deceso", "término", "pérdida"],
+            "cielo": ["firmamento", "paraíso", "inmensidad", "bóveda celeste"],
+            "tierra": ["suelo", "mundo", "planeta", "patria", "terreno"],
+            "fuego": ["llama", "ardor", "pasión", "calor", "incendio"],
+            "agua": ["líquido", "fluido", "corriente", "caudal", "río"],
+            "viento": ["aire", "brisa", "soplo", "corriente", "ráfaga"],
+            "sol": ["astro", "estrella", "luz solar", "claridad", "brillo"],
+            "luna": ["satélite", "astro nocturno", "plenilunio", "menguante"],
+            "estrella": ["astro", "lucero", "estrellita", "luminaria"],
+            "palabra": ["término", "vocablo", "expresión", "voz", "promesa"],
+            "silencio": ["quietud", "calma", "paz", "mutismo", "sosiego"],
+            "voz": ["sonido", "tono", "timbre", "palabra", "grito"],
+            "canción": ["melodía", "tema", "balada", "canto", "tonada"],
+            "bailar": ["danzar", "moverse", "girar", "valsar", "menear"],
+            "besar": ["dar un beso", "acariciar", "rozar", "tocar"],
+            "abrazar": ["estrechar", "rodear", "envolver", "apretar"],
+            "llorar": ["lagrimear", "sollozar", "gemir", "lamentarse"],
+            "reír": ["carcajear", "sonreír", "desternillarse", "alegrar"],
+            "caminar": ["andar", "pasear", "marchar", "transitar", "deambular"],
+            "correr": ["trotar", "galopar", "apresurarse", "acelerar"],
+            "dormir": ["descansar", "reposar", "yacer", "adormecerse"],
+            "despertar": ["despertarse", "levantarse", "abrir los ojos"],
+            "comer": ["alimentarse", "ingerir", "degustar", "devorar"],
+            "beber": ["tomar", "ingerir", "libar", "sorber", "tragar"],
+            "escribir": ["redactar", "componer", "anotar", "plasmar"],
+            "leer": ["ojear", "repasar", "estudiar", "descifrar"],
+            "pensar": ["reflexionar", "meditar", "considerar", "razonar"],
+            "sentir": ["percibir", "experimentar", "notar", "vivir"],
+            "mirar": ["observar", "contemplar", "ver", "ojear", "divisar"],
+            "escuchar": ["oír", "atender", "percibir", "captar"],
+            "hablar": ["conversar", "charlar", "dialogar", "platicar"],
+            "gritar": ["vociferar", "chillar", "bramar", "aullar"],
+            "cantar": ["entonar", "interpretar", "tararear", "vocalizar"],
+            "tocar": ["palpar", "acariciar", "rozar", "tantear"],
+            "buscar": ["indagar", "investigar", "rastrear", "explorar"],
+            "encontrar": ["hallar", "localizar", "descubrir", "topar"],
+            "perder": ["extraviar", "olvidar", "desaprovechar"],
+            "ganar": ["obtener", "conseguir", "lograr", "alcanzar"],
+            "dar": ["entregar", "otorgar", "conceder", "ofrecer", "regalar"],
+            "recibir": ["obtener", "aceptar", "tomar", "adquirir"],
+            "tener": ["poseer", "contar con", "disponer", "portar"],
+            "querer": ["amar", "desear", "anhelar", "adorar", "apreciar"],
+            "poder": ["capacidad", "fuerza", "autoridad", "dominio"],
+            "saber": ["conocer", "entender", "comprender", "dominar"],
+            "hacer": ["realizar", "ejecutar", "crear", "efectuar", "fabricar"],
+            "ir": ["marchar", "dirigirse", "trasladarse", "partir"],
+            "venir": ["llegar", "acercarse", "aproximarse", "arribar"],
+            "estar": ["hallarse", "encontrarse", "permanecer", "situarse"],
+            "ser": ["existir", "constituir", "representar"],
+            "ver": ["observar", "mirar", "contemplar", "divisar", "percibir"],
+            "decir": ["expresar", "manifestar", "comunicar", "declarar"],
+            "bello": ["hermoso", "bonito", "lindo", "precioso", "bello"],
+            "feo": ["horrible", "desagradable", "repulsivo", "antiestético"],
+            "grande": ["enorme", "vasto", "inmenso", "gigantesco", "colosal"],
+            "pequeño": ["diminuto", "chico", "reducido", "minúsculo"],
+            "bueno": ["óptimo", "excelente", "magnífico", "extraordinario"],
+            "malo": ["pésimo", "negativo", "perjudicial", "nocivo"],
+            "nuevo": ["reciente", "moderno", "actual", "novato", "fresco"],
+            "viejo": ["antiguo", "anciano", "añejo", "veterano", "usado"],
+            "joven": ["juvenil", "mozo", "adolescente", "muchacho"],
+            "rápido": ["veloz", "presto", "ligero", "acelerado", "raudo"],
+            "lento": ["pausado", "tranquilo", "moroso", "perezoso"],
+            "fuerte": ["robusto", "potente", "vigoroso", "poderoso"],
+            "débil": ["frágil", "endeble", "flojo", "delicado"]
+        }
+        
+        word_lower = word.lower()
+        if word_lower in spanish_synonyms:
+            return {"word": word, "synonyms": spanish_synonyms[word_lower], "language": "es"}
+        
+        # No results in either language
+        return {"word": word, "synonyms": [], "language": "unknown"}
+        
     except Exception as e:
         logger.error(f"Error fetching synonyms: {e}")
-        return {"word": word, "synonyms": []}
+        return {"word": word, "synonyms": [], "language": "error"}
 
 # Subscription
 @api_router.post("/subscription/upgrade")
