@@ -25,10 +25,6 @@ const ProfileModal = ({ user, token, onClose, onUpdate }) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSelectChange = (name, value) => {
-    setFormData({ ...formData, [name]: value });
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
