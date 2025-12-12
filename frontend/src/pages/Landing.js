@@ -57,6 +57,23 @@ const Landing = () => {
           alt="Studio"
           className="hero-image"
         />
+        
+        {/* Floating Logo Animation */}
+        <motion.div
+          className="absolute top-1/4 right-1/4 opacity-10"
+          animate={{ 
+            y: [0, -20, 0],
+            rotate: [0, 5, 0]
+          }}
+          transition={{ 
+            duration: 6,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        >
+          <img src={logoUrl} alt="" className="h-48 w-auto" />
+        </motion.div>
+        
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-12 items-center">
             <motion.div
