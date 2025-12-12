@@ -18,8 +18,13 @@ const ProfileModal = ({ user, token, onClose, onUpdate }) => {
     pro_affiliation: user?.pro_affiliation || "",
     publisher: user?.publisher || "",
     role: user?.role || "",
-    bio: user?.bio || ""
+    roles: user?.roles || [],
+    music_styles: user?.music_styles || [],
+    bio: user?.bio || "",
+    photo_url: user?.photo_url || ""
   });
+  const [photoFile, setPhotoFile] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(user?.photo_url || "");
   const [loading, setLoading] = useState(false);
   const isRequired = !user?.profile_completed;
 
