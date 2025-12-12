@@ -259,6 +259,9 @@ const Messages = ({ token, user }) => {
           </div>
         </div>
       </main>
+
+      {/* Floating Logo Badge */}
+      <LogoBadge />
     </div>
   );
 };
