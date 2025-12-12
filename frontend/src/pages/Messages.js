@@ -177,8 +177,12 @@ const Messages = ({ token, user }) => {
                 {/* Chat Header */}
                 <div className="p-4 border-b border-white/10">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-[#FFB800]/20 rounded-full flex items-center justify-center text-[#FFB800] font-bold text-xl">
-                      {selectedConversation.partner.artist_name?.charAt(0) || '?'}
+                    <div className="w-12 h-12 bg-[#FFB800]/20 rounded-full flex items-center justify-center text-[#FFB800] font-bold text-xl overflow-hidden">
+                      {selectedConversation.partner.photo_url ? (
+                        <img src={selectedConversation.partner.photo_url} alt={selectedConversation.partner.artist_name} className="w-full h-full object-cover" />
+                      ) : (
+                        selectedConversation.partner.artist_name?.charAt(0) || '?'
+                      )}
                     </div>
                     <div>
                       <h3 className="font-bold">{selectedConversation.partner.artist_name}</h3>
