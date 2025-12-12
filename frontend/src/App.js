@@ -17,6 +17,7 @@ const API = `${BACKEND_URL}/api`;
 function App() {
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [user, setUser] = useState(null);
+  const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
     if (token) {
