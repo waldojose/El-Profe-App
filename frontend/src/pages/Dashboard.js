@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import { Plus, Music, LogOut, User, Crown, Settings, FileText, ChevronRight } from "lucide-react";
+import { Plus, Music, LogOut, User, Crown, Settings, FileText, ChevronRight, Users } from "lucide-react";
 import ProfileModal from "../components/ProfileModal";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
