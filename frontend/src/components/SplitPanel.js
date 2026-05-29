@@ -108,7 +108,7 @@ const SplitPanel = ({ songId, token, user, song }) => {
     return (
       <div className="backdrop-studio p-6 rounded-sm" data-testid="split-panel-locked">
         <div className="flex items-center gap-2 mb-4">
-          <Crown className="text-[#FFB800]" size={20} />
+          <Crown className="text-[#7c5cff]" size={20} />
           <h3 className="font-bold text-lg">Split Management</h3>
         </div>
         <div className="p-6 bg-[#121212] rounded-sm text-center">
@@ -124,15 +124,15 @@ const SplitPanel = ({ songId, token, user, song }) => {
     <div className="backdrop-studio p-6 rounded-sm" data-testid="split-panel">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
-          <FileText className="text-[#FFB800]" size={20} />
+          <FileText className="text-[#7c5cff]" size={20} />
           <h3 className="font-bold text-lg">Splits</h3>
         </div>
         <button
           onClick={() => setShowNewSplitModal(true)}
-          className="p-2 hover:bg-[#FFB800]/20 rounded transition-colors"
+          className="p-2 hover:bg-[#7c5cff]/20 rounded transition-colors"
           data-testid="create-split-btn"
         >
-          <Plus size={16} className="text-[#FFB800]" />
+          <Plus size={16} className="text-[#7c5cff]" />
         </button>
       </div>
 
@@ -163,7 +163,7 @@ const SplitPanel = ({ songId, token, user, song }) => {
                 {split.splits.map((s, i) => (
                   <div key={i} className="flex justify-between text-xs">
                     <span className="text-gray-400">Contributor {i + 1}</span>
-                    <span className="font-bold text-[#FFB800] text-mono">{s.percentage}%</span>
+                    <span className="font-bold text-[#7c5cff] text-mono">{s.percentage}%</span>
                   </div>
                 ))}
               </div>
@@ -174,7 +174,7 @@ const SplitPanel = ({ songId, token, user, song }) => {
                     setSelectedProposal(split);
                     setShowSignModal(true);
                   }}
-                  className="flex-1 px-3 py-2 bg-[#FFB800] text-black text-xs font-bold rounded-sm hover:bg-[#e0a600] transition-colors"
+                  className="flex-1 px-3 py-2 bg-[#7c5cff] text-white text-xs font-bold rounded-sm hover:bg-[#6a4ef0] transition-colors"
                   data-testid={`sign-split-btn-${index}`}
                 >
                   Sign
@@ -233,7 +233,7 @@ const SplitPanel = ({ songId, token, user, song }) => {
             </Button>
             <Button
               onClick={handleCreateSplit}
-              className="bg-[#FFB800] text-black hover:bg-[#e0a600] font-bold"
+              className="bg-[#7c5cff] text-white hover:bg-[#6a4ef0] font-bold"
               data-testid="save-split-btn"
             >
               Create Proposal
@@ -272,7 +272,7 @@ const SplitPanel = ({ songId, token, user, song }) => {
             </Button>
             <Button
               onClick={handleSign}
-              className="bg-[#FFB800] text-black hover:bg-[#e0a600] font-bold"
+              className="bg-[#7c5cff] text-white hover:bg-[#6a4ef0] font-bold"
               data-testid="confirm-sign-btn"
             >
               Sign Document

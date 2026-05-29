@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: el-profe
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /
+    envVars:
+      - key: MONGO_URL
+        sync: false          # paste your MongoDB Atlas connection string in the dashboard
+      - key: DB_NAME
+        value: elprofe
+      - key: JWT_SECRET
+        generateValue: true  # Render generates a strong secret
+      - key: CORS_ORIGINS
+        value: "*"

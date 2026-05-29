@@ -1,0 +1,15 @@
+**/node_modules
+**/venv
+**/.venv
+**/build
+**/__pycache__
+**/*.pyc
+**/.env
+**/.env.*
+*.log
+.git
+.idea
+.vscode
+test_reports
+tests
+*.zip

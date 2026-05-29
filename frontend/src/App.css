@@ -1,42 +1,292 @@
 .App {
   min-height: 100vh;
-  background: #050505;
+  background: var(--ep-bg);
+}
+
+/* ============================================================
+   Reactive aurora background — "midnight mixing console"
+   ============================================================ */
+.aurora-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(900px circle at var(--mx) var(--my), rgba(124, 92, 255, 0.18), transparent 45%),
+    radial-gradient(700px circle at calc(100% - var(--mx)) calc(var(--my) + 10%), rgba(34, 211, 238, 0.12), transparent 50%),
+    var(--ep-bg);
+  transition: background 0.15s ease-out;
+}
+
+/* Drifting colored blobs that give depth behind the reactive layer */
+.aurora-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.45;
+  mix-blend-mode: screen;
+}
+.aurora-blob.v1 {
+  width: 540px; height: 540px;
+  background: radial-gradient(circle, var(--ep-violet) 0%, transparent 70%);
+  top: -8%; left: 8%;
+  animation: drift1 18s ease-in-out infinite;
+}
+.aurora-blob.v2 {
+  width: 460px; height: 460px;
+  background: radial-gradient(circle, var(--ep-cyan) 0%, transparent 70%);
+  top: 30%; right: 4%;
+  animation: drift2 22s ease-in-out infinite;
+}
+.aurora-blob.v3 {
+  width: 420px; height: 420px;
+  background: radial-gradient(circle, var(--ep-magenta) 0%, transparent 70%);
+  bottom: -6%; left: 38%;
+  animation: drift3 26s ease-in-out infinite;
+}
+@keyframes drift1 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(60px, 40px) scale(1.1); } }
+@keyframes drift2 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-50px, 30px) scale(1.15); } }
+@keyframes drift3 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(30px, -40px) scale(1.08); } }
+
+/* Fine grid that reads like a mixing console / ledger */
+.grid-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 30%, black 20%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 30%, black 20%, transparent 75%);
 }
 
 .noise-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   pointer-events: none;
-  opacity: 0.03;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='4' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.04;
   z-index: 1;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='4' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
 
-.glow-amber {
-  box-shadow: 0 0 30px rgba(255, 184, 0, 0.2);
+/* Floating particles (dust in the spotlight) */
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--ep-violet-2);
+  box-shadow: 0 0 8px var(--ep-violet-2);
+  opacity: 0.5;
 }
 
-.glow-red {
-  box-shadow: 0 0 20px rgba(255, 59, 48, 0.3);
+/* ============================================================
+   Typography helpers
+   ============================================================ */
+.eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ep-cyan);
 }
 
-.gradient-glow {
-  background: radial-gradient(circle at center, rgba(255, 184, 0, 0.1) 0%, rgba(0, 0, 0, 0) 70%);
+.gradient-text {
+  background: linear-gradient(100deg, var(--ep-violet-2) 0%, var(--ep-violet) 35%, var(--ep-cyan) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.gradient-text-2 {
+  background: linear-gradient(100deg, var(--ep-magenta) 0%, var(--ep-violet) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ============================================================
+   Buttons
+   ============================================================ */
+.btn-primary {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: linear-gradient(110deg, var(--ep-violet) 0%, var(--ep-magenta) 100%);
+  color: #fff;
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  padding: 0.85rem 1.75rem;
+  border-radius: 12px;
+  border: 1px solid rgba(157, 123, 255, 0.5);
+  box-shadow: 0 6px 24px rgba(124, 92, 255, 0.35);
+  transition: box-shadow 0.3s, transform 0.2s, filter 0.2s;
+}
+.btn-primary:hover {
+  filter: brightness(1.08) saturate(1.1);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 44px rgba(246, 91, 174, 0.45);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid var(--ep-border-strong);
+  background: rgba(124, 92, 255, 0.06);
+  color: var(--ep-text);
+  font-weight: 600;
+  padding: 0.85rem 1.75rem;
+  border-radius: 12px;
+  transition: background 0.3s, border-color 0.3s, transform 0.2s, box-shadow 0.3s;
+}
+.btn-secondary:hover {
+  background: rgba(34, 211, 238, 0.1);
+  border-color: var(--ep-cyan);
+  box-shadow: 0 0 24px rgba(34, 211, 238, 0.25);
+  transform: translateY(-2px);
 }
 
 .backdrop-studio {
-  backdrop-filter: blur(24px);
-  background: rgba(10, 10, 10, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px) saturate(140%);
+  background: rgba(7, 6, 13, 0.7);
+  border-bottom: 1px solid var(--ep-border);
 }
 
-.scroll-fade {
-  mask-image: linear-gradient(to bottom, black 90%, transparent 100%);
+/* ============================================================
+   Chips / tags
+   ============================================================ */
+.chip {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  color: var(--ep-muted);
+  border: 1px solid var(--ep-border);
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+  background: rgba(255, 255, 255, 0.02);
+  transition: color 0.3s, border-color 0.3s, box-shadow 0.3s;
+}
+.chip:hover {
+  color: var(--ep-ink);
+  border-color: var(--ep-cyan);
+  box-shadow: 0 0 18px rgba(34, 211, 238, 0.25);
 }
 
+/* ============================================================
+   Cards
+   ============================================================ */
+.glass {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.015) 100%);
+  border: 1px solid var(--ep-border);
+  border-radius: 18px;
+  backdrop-filter: blur(8px);
+}
+
+.feature-card {
+  position: relative;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.015) 100%);
+  border: 1px solid var(--ep-border);
+  border-radius: 18px;
+  padding: 1.75rem;
+  transition: border-color 0.35s, transform 0.35s, box-shadow 0.35s;
+  overflow: hidden;
+  transform-style: preserve-3d;
+}
+.feature-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(420px circle at top left, rgba(124, 92, 255, 0.14), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.35s;
+  pointer-events: none;
+}
+.feature-card:hover::after { opacity: 1; }
+.feature-card:hover {
+  border-color: var(--ep-border-strong);
+  box-shadow: 0 18px 50px rgba(124, 92, 255, 0.18);
+}
+
+.icon-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 14px;
+  color: var(--ep-cyan);
+  background: linear-gradient(135deg, rgba(124, 92, 255, 0.18), rgba(34, 211, 238, 0.12));
+  border: 1px solid rgba(157, 123, 255, 0.3);
+}
+
+.step-card {
+  position: relative;
+  background: var(--ep-surface);
+  border: 1px solid var(--ep-border);
+  border-radius: 18px;
+  padding: 2rem 1.5rem 1.5rem;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.step-card:hover {
+  border-color: var(--ep-border-strong);
+  box-shadow: 0 14px 40px rgba(124, 92, 255, 0.16);
+}
+.step-num {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 800;
+  font-size: 2.5rem;
+  line-height: 1;
+  background: linear-gradient(120deg, var(--ep-violet-2), var(--ep-cyan));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  opacity: 0.85;
+}
+
+/* ============================================================
+   Pricing
+   ============================================================ */
+.pricing-card {
+  background: var(--ep-surface);
+  border: 1px solid var(--ep-border);
+  border-radius: 20px;
+  padding: 2.5rem;
+  transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+}
+.pricing-card.pro {
+  border-color: var(--ep-border-strong);
+  position: relative;
+  background: linear-gradient(180deg, rgba(124, 92, 255, 0.1) 0%, var(--ep-surface) 45%);
+}
+.pricing-card.pro::before {
+  content: '';
+  position: absolute;
+  inset: -1.5px;
+  background: linear-gradient(140deg, var(--ep-violet), var(--ep-cyan) 60%, transparent);
+  border-radius: 20px;
+  z-index: -1;
+  opacity: 0.6;
+  filter: blur(16px);
+}
+
+/* ============================================================
+   Comparison panel (dark glass, neon accents)
+   ============================================================ */
+.compare {
+  background: var(--ep-surface);
+  border: 1px solid var(--ep-border);
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+/* ============================================================
+   Editor lyrics (kept for the rest of the app)
+   ============================================================ */
 .editable-lyrics {
   min-height: 400px;
   padding: 1.5rem;
@@ -44,98 +294,13 @@
   font-size: 1rem;
   line-height: 1.8;
   color: #fafafa;
-  background: rgba(18, 18, 18, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
+  background: rgba(18, 18, 24, 0.8);
+  border: 1px solid var(--ep-border);
+  border-radius: 12px;
   outline: none;
   transition: border-color 0.3s;
 }
+.editable-lyrics:focus { border-color: var(--ep-violet); }
 
-.editable-lyrics:focus {
-  border-color: #FFB800;
-}
-
-.btn-primary {
-  background: #FFB800;
-  color: #000;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 0.75rem 2rem;
-  border-radius: 2px;
-  transition: background 0.3s, transform 0.2s;
-}
-
-.btn-primary:hover {
-  background: #e0a600;
-  transform: translateY(-2px);
-}
-
-.btn-secondary {
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: transparent;
-  color: white;
-  padding: 0.75rem 2rem;
-  border-radius: 2px;
-  transition: background 0.3s, border-color 0.3s;
-}
-
-.btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.4);
-}
-
-.hero-image {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 50%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0.3;
-  mask-image: linear-gradient(to left, black 30%, transparent 100%);
-}
-
-.feature-card {
-  background: rgba(10, 10, 10, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  padding: 2rem;
-  transition: border-color 0.3s, transform 0.3s;
-}
-
-.feature-card:hover {
-  border-color: rgba(255, 184, 0, 0.5);
-  transform: translateY(-4px);
-}
-
-.pricing-card {
-  background: rgba(10, 10, 10, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  padding: 2.5rem;
-  transition: border-color 0.3s, transform 0.3s;
-}
-
-.pricing-card.pro {
-  border-color: #FFB800;
-  position: relative;
-}
-
-.pricing-card.pro::before {
-  content: '';
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  background: linear-gradient(45deg, #FFB800, #FF3B30, #D946EF);
-  border-radius: 4px;
-  z-index: -1;
-  opacity: 0.3;
-  filter: blur(10px);
-}
-
-.pricing-card:hover {
-  transform: translateY(-4px);
-}
+.glow-amber { box-shadow: 0 0 30px rgba(124, 92, 255, 0.3); }
+.gradient-glow { background: radial-gradient(circle at center, rgba(124, 92, 255, 0.14) 0%, rgba(0, 0, 0, 0) 70%); }

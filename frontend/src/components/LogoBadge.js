@@ -46,7 +46,7 @@ const LogoBadge = () => {
         <img 
           src={logoUrl} 
           alt="Professor App" 
-          className="h-20 w-auto relative z-10 filter drop-shadow-[0_0_15px_rgba(255,184,0,0.5)]"
+          className="h-20 w-auto relative z-10 filter drop-shadow-[0_0_15px_rgba(124,92,255,0.5)]"
         />
       </div>
     </motion.div>

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600&family=Syne:wght@700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,7 +6,7 @@
 
 body {
     margin: 0;
-    font-family: 'Manrope', -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
+    font-family: 'Hanken Grotesk', -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
@@ -23,41 +23,63 @@ code {
         --card-foreground: 0 0% 3.9%;
         --popover: 0 0% 100%;
         --popover-foreground: 0 0% 3.9%;
-        --primary: 45 100% 50%;
-        --primary-foreground: 0 0% 0%;
-        --secondary: 0 100% 60%;
-        --secondary-foreground: 0 0% 100%;
+        --primary: 252 100% 68%;
+        --primary-foreground: 0 0% 100%;
+        --secondary: 187 85% 53%;
+        --secondary-foreground: 0 0% 0%;
         --muted: 0 0% 96.1%;
         --muted-foreground: 0 0% 45.1%;
-        --accent: 288 84% 60%;
+        --accent: 326 90% 66%;
         --accent-foreground: 0 0% 100%;
         --destructive: 0 84.2% 60.2%;
         --destructive-foreground: 0 0% 98%;
         --border: 0 0% 14.9%;
         --input: 0 0% 14.9%;
-        --ring: 45 100% 50%;
-        --radius: 0.25rem;
+        --ring: 252 100% 68%;
+        --radius: 0.75rem;
+
+        /* El Profe — "midnight mixing console" aurora palette (no yellow) */
+        --ep-bg: #07060d;
+        --ep-bg-2: #0b0a14;
+        --ep-surface: #100e1c;
+        --ep-surface-2: #15122a;
+        --ep-border: rgba(255, 255, 255, 0.08);
+        --ep-border-strong: rgba(157, 123, 255, 0.35);
+        --ep-violet: #7c5cff;
+        --ep-violet-2: #9d7bff;
+        --ep-cyan: #22d3ee;
+        --ep-magenta: #f65bae;
+        --ep-text: #ecebf6;
+        --ep-ink: #ffffff;
+        --ep-muted: #9b97b8;
+        --ep-success: #34d399;
+        --ep-error: #fb7185;
+        --ep-glow: rgba(124, 92, 255, 0.5);
+
+        /* mouse position, updated by the aurora background */
+        --mx: 50%;
+        --my: 20%;
     }
     .dark {
-        --background: 0 0% 2%;
+        --background: 252 30% 5%;
         --foreground: 0 0% 98%;
-        --card: 0 0% 3.9%;
+        --card: 252 25% 8%;
         --card-foreground: 0 0% 98%;
-        --popover: 0 0% 3.9%;
+        --popover: 252 25% 8%;
         --popover-foreground: 0 0% 98%;
-        --primary: 45 100% 50%;
-        --primary-foreground: 0 0% 0%;
-        --secondary: 0 100% 60%;
-        --secondary-foreground: 0 0% 100%;
-        --muted: 0 0% 14.9%;
+        --primary: 252 100% 68%;
+        --primary-foreground: 0 0% 100%;
+        --secondary: 187 85% 53%;
+        --secondary-foreground: 0 0% 0%;
+        --muted: 252 15% 16%;
         --muted-foreground: 0 0% 63.9%;
-        --accent: 288 84% 60%;
+        --accent: 326 90% 66%;
         --accent-foreground: 0 0% 100%;
         --destructive: 0 62.8% 30.6%;
         --destructive-foreground: 0 0% 98%;
-        --border: 0 0% 14.9%;
-        --input: 0 0% 7%;
-        --ring: 45 100% 50%;
+        --border: 252 15% 16%;
+        --input: 252 15% 12%;
+        --ring: 252 100% 68%;
     }
 }
 
@@ -67,6 +89,7 @@ code {
     }
     html {
         @apply dark;
+        scroll-behavior: smooth;
     }
     body {
         @apply bg-background text-foreground;
@@ -75,7 +98,8 @@ code {
 
 @layer utilities {
     .text-heading {
-        font-family: 'Syne', sans-serif;
+        font-family: 'Bricolage Grotesque', 'Hanken Grotesk', sans-serif;
+        font-optical-sizing: auto;
     }
     .text-mono {
         font-family: 'JetBrains Mono', monospace;

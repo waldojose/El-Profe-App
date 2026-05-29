@@ -1,432 +1,451 @@
-import { useState } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Music, Users, FileCheck, Lock, Crown, Sparkles } from "lucide-react";
+import {
+  Music, FileCheck, Lock, GitBranch, FileText,
+  Languages, PenTool, Scale, Check, X, ChevronRight
+} from "lucide-react";
+
+const LOGO_URL =
+  "https://customer-assets.emergentagent.com/job_elprofe-app/artifacts/vq8mu8b5_A_digital_vector_graphic_features_the_logo_for__Pr.png";
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 24 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+};
+
+// Static particle field (positions computed once at module load)
+const PARTICLES = Array.from({ length: 26 }, (_, i) => ({
+  id: i,
+  left: Math.random() * 100,
+  top: Math.random() * 100,
+  size: 2 + Math.random() * 3,
+  delay: Math.random() * 6,
+  duration: 6 + Math.random() * 8,
+  drift: -20 + Math.random() * 40,
+}));
+
+/* Mouse-reactive aurora background */
+const AuroraBackground = () => {
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    let raf = 0;
+    const onMove = (e) => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const x = (e.clientX / window.innerWidth) * 100;
+        const y = (e.clientY / window.innerHeight) * 100;
+        el.style.setProperty("--mx", `${x}%`);
+        el.style.setProperty("--my", `${y}%`);
+      });
+    };
+    window.addEventListener("pointermove", onMove);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+
+  return (
+    <>
+      <div className="aurora-bg" ref={ref}>
+        <div className="aurora-blob v1" />
+        <div className="aurora-blob v2" />
+        <div className="aurora-blob v3" />
+        {PARTICLES.map((p) => (
+          <motion.span
+            key={p.id}
+            className="particle"
+            style={{ left: `${p.left}%`, top: `${p.top}%`, width: p.size, height: p.size }}
+            animate={{ y: [0, p.drift, 0], opacity: [0.15, 0.6, 0.15] }}
+            transition={{ duration: p.duration, delay: p.delay, repeat: Infinity, ease: "easeInOut" }}
+          />
+        ))}
+      </div>
+      <div className="grid-overlay" />
+      <div className="noise-overlay" />
+    </>
+  );
+};
 
 const Landing = () => {
   const navigate = useNavigate();
-  const logoUrl = "https://customer-assets.emergentagent.com/job_elprofe-app/artifacts/vq8mu8b5_A_digital_vector_graphic_features_the_logo_for__Pr.png";
+  const goSignup = () => navigate("/auth?mode=signup");
+  const goLogin = () => navigate("/auth");
+  const scrollTo = (id) =>
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+
+  const features = [
+    { icon: <Music className="w-6 h-6" />, title: "Real-Time Co-Writing", desc: "Write together with live presence and instant sync across every device." },
+    { icon: <PenTool className="w-6 h-6" />, title: "Character-Level Tracking", desc: "Every keystroke logged. See exactly who wrote what — an immutable audit trail." },
+    { icon: <FileCheck className="w-6 h-6" />, title: "Manual Split Sheets", desc: "You decide the percentages. The data supports the negotiation — it never auto-assigns." },
+    { icon: <Lock className="w-6 h-6" />, title: "Binding Signatures", desc: "Every co-writer signs. Splits lock only when all signatures are collected." },
+    { icon: <GitBranch className="w-6 h-6" />, title: "Full Version History", desc: "Restore any version, compare changes, and trace every creative decision." },
+    { icon: <Languages className="w-6 h-6" />, title: "Bilingual EN / ES", desc: "Built Spanish-first and English-canonical, with a curated songwriter dictionary." },
+  ];
+
+  const steps = [
+    { n: "01", title: "Write together", desc: "Open a song and co-write in real time — every contribution is captured as it happens." },
+    { n: "02", title: "See contributions", desc: "Character-level analytics show each writer's share as decision support, not a verdict." },
+    { n: "03", title: "Propose the split", desc: "Drag the sliders, agree on percentages that total 100%. You stay in control." },
+    { n: "04", title: "Sign & export", desc: "Everyone signs, the sheet locks, and you export a tamper-evident PDF for your PRO." },
+  ];
+
+  const societies = ["ASCAP", "BMI", "SESAC", "SGAE"];
+
+  const faqs = [
+    { q: "How are the splits decided?", a: "Always by the writers — manually. El Profe tracks contribution at the character level to give you hard data for the negotiation, but it never assigns percentages itself. You set the numbers and everyone signs." },
+    { q: "What makes the PDF legally defensible?", a: "Each split sheet carries a document ID, the full signature table in /s/ Name format, timestamps, and a tamper-evident footer. Until every co-writer signs, the PDF is watermarked DRAFT." },
+    { q: "Can I register works with my PRO?", a: "Yes. Export a clean, signed split sheet ready to submit to ASCAP, BMI, SESAC, or SGAE for registration." },
+    { q: "Is my work private?", a: "Your songs are yours. Collaborators only see the songs you invite them to, and the audit log records every change." },
+  ];
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white overflow-x-hidden relative">
-      <div className="noise-overlay"></div>
-      
-      {/* Animated Accent Dots */}
-      {[...Array(5)].map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute w-2 h-2 bg-[#FFB800] rounded-full"
-          style={{
-            top: `${20 + i * 15}%`,
-            left: `${10 + i * 20}%`,
-            opacity: 0.2
-          }}
-          animate={{
-            scale: [1, 1.5, 1],
-            opacity: [0.2, 0.4, 0.2]
-          }}
-          transition={{
-            duration: 3 + i,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: i * 0.5
-          }}
-        />
-      ))}
-      
-      {/* Navigation */}
-      <motion.nav 
-        className="backdrop-studio fixed top-0 w-full z-50 border-b border-white/10"
-        initial={{ y: -100 }}
+    <div className="min-h-screen text-[var(--ep-text)] overflow-x-hidden relative" style={{ background: "var(--ep-bg)" }}>
+      <AuroraBackground />
+
+      {/* ---------------- Navigation ---------------- */}
+      <motion.nav
+        className="backdrop-studio fixed top-0 w-full z-50"
+        initial={{ y: -80 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
       >
-        <div className="max-w-7xl mx-auto px-6 md:px-12 py-4 flex justify-between items-center">
-          <motion.div 
-            className="flex items-center gap-3 cursor-pointer relative"
-            onClick={() => navigate("/")}
-            whileHover={{ scale: 1.1 }}
-            transition={{ type: "spring", stiffness: 400 }}
-          >
-            {/* Animated glow effect */}
-            <motion.div
-              className="absolute inset-0 blur-xl opacity-0"
-              whileHover={{ opacity: 0.6 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="w-full h-full bg-[#FFB800] rounded-full"></div>
-            </motion.div>
-            
-            <motion.img 
-              src={logoUrl} 
-              alt="Professor App" 
-              className="h-16 w-auto relative z-10 filter drop-shadow-[0_0_20px_rgba(255,184,0,0.4)]"
-              animate={{
-                filter: [
-                  "drop-shadow(0 0 20px rgba(255,184,0,0.4))",
-                  "drop-shadow(0 0 30px rgba(255,184,0,0.6))",
-                  "drop-shadow(0 0 20px rgba(255,184,0,0.4))"
-                ]
-              }}
-              transition={{
-                duration: 3,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
+        <div className="max-w-7xl mx-auto px-6 md:px-10 py-3.5 flex justify-between items-center">
+          <div className="flex items-center gap-2.5 cursor-pointer relative" onClick={() => navigate("/")}>
+            <div className="absolute -inset-3 blur-2xl opacity-60 pointer-events-none">
+              <div className="w-full h-full rounded-full" style={{ background: "radial-gradient(circle, rgba(124,92,255,0.55), transparent 70%)" }} />
+            </div>
+            <img
+              src={LOGO_URL}
+              alt="El Profe"
+              className="h-11 w-auto relative z-10 rounded-lg"
+              style={{ filter: "drop-shadow(0 0 14px rgba(124,92,255,0.5))" }}
             />
-          </motion.div>
-          <div className="flex gap-4">
-            <motion.button
-              onClick={() => navigate("/auth")}
-              className="btn-secondary text-sm"
-              data-testid="nav-login-btn"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Login
-            </motion.button>
-            <motion.button
-              onClick={() => navigate("/auth?mode=signup")}
-              className="btn-primary text-sm"
-              data-testid="nav-signup-btn"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Start Free
-            </motion.button>
+          </div>
+
+          <div className="hidden md:flex items-center gap-8 text-sm text-[var(--ep-muted)]">
+            <button onClick={() => scrollTo("how")} className="hover:text-[var(--ep-ink)] transition-colors">How it works</button>
+            <button onClick={() => scrollTo("features")} className="hover:text-[var(--ep-ink)] transition-colors">Features</button>
+            <button onClick={() => scrollTo("pricing")} className="hover:text-[var(--ep-ink)] transition-colors">Pricing</button>
+            <button onClick={() => scrollTo("faq")} className="hover:text-[var(--ep-ink)] transition-colors">FAQ</button>
+          </div>
+
+          <div className="flex gap-3 items-center">
+            <button onClick={goLogin} className="btn-secondary text-sm py-2 px-4" data-testid="nav-login-btn">Login</button>
+            <button onClick={goSignup} className="btn-primary text-sm py-2 px-4" data-testid="nav-signup-btn">Start Free</button>
           </div>
         </div>
       </motion.nav>
 
-      {/* Hero Section */}
-      <section className="relative pt-32 pb-24 px-6 md:px-12 overflow-hidden">
-        <img
-          src="https://images.unsplash.com/photo-1552174588-6733961c358e?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzZ8MHwxfHNlYXJjaHwxfHxtdXNpYyUyMHN0dWRpbyUyMHJlY29yZGluZyUyMHNlc3Npb24lMjBkYXJrfGVufDB8fHx8MTc2NTUwODUxN3ww&ixlib=rb-4.1.0&q=85"
-          alt="Studio"
-          className="hero-image"
-        />
-        
-        {/* MASSIVE Central Logo with Epic Effects */}
-        <motion.div
-          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-          initial={{ opacity: 0, scale: 0 }}
-          animate={{ 
-            opacity: [0.15, 0.25, 0.15],
-            scale: [1, 1.05, 1],
-            rotate: [0, 2, -2, 0]
-          }}
-          transition={{ 
-            duration: 8,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
+      {/* ---------------- Hero ---------------- */}
+      <section className="relative pt-40 pb-28 px-6 md:px-10 overflow-hidden z-10">
+        {/* Ghost logo watermark */}
+        <div
+          className="absolute top-1/2 left-1/2 pointer-events-none z-0"
+          style={{ transform: "translate(-50%, -50%)" }}
         >
-          <div className="relative">
-            {/* Glowing aura */}
-            <div className="absolute inset-0 blur-3xl opacity-50">
-              <img src={logoUrl} alt="" className="h-[600px] w-auto" />
-            </div>
-            {/* Main logo */}
-            <img 
-              src={logoUrl} 
-              alt="" 
-              className="h-[600px] w-auto relative z-10 filter drop-shadow-[0_0_100px_rgba(255,184,0,0.6)]" 
-            />
-          </div>
-        </motion.div>
-        
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-12 items-center">
-            <motion.div
-              className="md:col-span-7"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-            >
-              <h1 className="text-heading text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight mb-6 leading-tight">
-                Collaborate.
-                <br />
-                <span className="text-[#FFB800]">Track. Protect.</span>
-              </h1>
-              <p className="text-lg sm:text-xl text-gray-400 mb-8 max-w-2xl">
-                The professional songwriting platform that tracks every contribution,
-                ensures fair splits, and generates legally defensible documentation.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <motion.button
-                  onClick={() => navigate("/auth?mode=signup")}
-                  className="btn-primary glow-amber"
-                  data-testid="hero-start-free-btn"
-                  whileHover={{ scale: 1.05, boxShadow: "0 0 40px rgba(255, 184, 0, 0.4)" }}
-                  whileTap={{ scale: 0.95 }}
-                  transition={{ type: "spring", stiffness: 400 }}
-                >
-                  Start Free
-                </motion.button>
-                <motion.button
-                  onClick={() => document.getElementById('pricing').scrollIntoView({ behavior: 'smooth' })}
-                  className="btn-secondary"
-                  data-testid="hero-go-pro-btn"
-                  whileHover={{ scale: 1.05, borderColor: "rgba(255, 184, 0, 0.6)" }}
-                  whileTap={{ scale: 0.95 }}
-                  transition={{ type: "spring", stiffness: 400 }}
-                >
-                  Go Pro
-                </motion.button>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-full h-48 gradient-glow"></div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-24 px-6 md:px-12 relative">
-        <div className="max-w-7xl mx-auto">
-          <motion.div
-            className="text-center mb-16"
+          <motion.img
+            src={LOGO_URL}
+            alt=""
+            className="h-[480px] w-auto rounded-3xl"
+            style={{ filter: "drop-shadow(0 0 120px rgba(124,92,255,0.5))" }}
             initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <h2 className="text-heading text-3xl sm:text-4xl font-bold mb-4">
-              Built for <span className="text-[#FFB800]">Serious Creators</span>
-            </h2>
-            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-              Every feature designed for trust, accountability, and legal clarity
-            </p>
+            animate={{
+              opacity: [0.06, 0.13, 0.06],
+              scale: [1, 1.06, 1],
+              x: [0, 110, -90, 60, 0],
+              y: [0, -70, 50, -30, 0],
+              rotate: [0, 3.5, -3.5, 1.5, 0],
+            }}
+            transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
+          />
+        </div>
+
+        <div className="max-w-5xl mx-auto relative z-10 text-center">
+          <motion.div variants={fadeUp} initial="hidden" animate="show">
+            <span className="eyebrow">Songwriter Split Platform</span>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              {
-                icon: <Music className="w-8 h-8" />,
-                title: "Real-Time Collaboration",
-                description: "Write together with live presence indicators and instant sync across all devices."
-              },
-              {
-                icon: <Users className="w-8 h-8" />,
-                title: "Character-Level Tracking",
-                description: "Every keystroke is logged. See exactly who contributed what, with immutable audit logs."
-              },
-              {
-                icon: <FileCheck className="w-8 h-8" />,
-                title: "Manual Split Management",
-                description: "You decide the splits. Data supports negotiations, never auto-assigns ownership."
-              },
-              {
-                icon: <Lock className="w-8 h-8" />,
-                title: "Digital Signatures",
-                description: "All parties sign off. Lock splits and songs with legally binding documentation."
-              },
-              {
-                icon: <Sparkles className="w-8 h-8" />,
-                title: "Version Control",
-                description: "Complete history. Restore any version, compare changes, track every decision."
-              },
-              {
-                icon: <Crown className="w-8 h-8" />,
-                title: "Legal Export",
-                description: "Generate PDF split sheets with all metadata, ready for legal use and PRO registration."
-              }
-            ].map((feature, index) => (
+          <motion.h1
+            variants={fadeUp}
+            initial="hidden"
+            animate="show"
+            transition={{ delay: 0.08 }}
+            className="text-heading font-extrabold tracking-tight mt-6 mb-6 leading-[0.98] text-5xl sm:text-6xl lg:text-[5rem]"
+          >
+            Co-write. Track.
+            <br />
+            <span className="gradient-text">Split it fairly.</span>
+          </motion.h1>
+
+          <motion.p
+            variants={fadeUp}
+            initial="hidden"
+            animate="show"
+            transition={{ delay: 0.16 }}
+            className="text-lg sm:text-xl text-[var(--ep-muted)] max-w-2xl mx-auto mb-9"
+          >
+            The platform for working songwriters: track every contribution,
+            settle splits fairly, collect binding signatures, and export
+            tamper-evident PDFs for ASCAP, BMI, SESAC &amp; SGAE.
+          </motion.p>
+
+          <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            animate="show"
+            transition={{ delay: 0.24 }}
+            className="flex flex-col sm:flex-row gap-4 justify-center"
+          >
+            <motion.button onClick={goSignup} className="btn-primary" data-testid="hero-start-free-btn" whileTap={{ scale: 0.96 }}>
+              Start free <ChevronRight className="w-4 h-4" />
+            </motion.button>
+            <motion.button onClick={() => scrollTo("pricing")} className="btn-secondary" data-testid="hero-go-pro-btn" whileTap={{ scale: 0.96 }}>
+              See pricing
+            </motion.button>
+          </motion.div>
+
+          <motion.p
+            variants={fadeUp}
+            initial="hidden"
+            animate="show"
+            transition={{ delay: 0.32 }}
+            className="text-mono text-xs text-[var(--ep-muted)] mt-6 tracking-wider"
+          >
+            No credit card · Splits decided by writers, never by AI
+          </motion.p>
+        </div>
+      </section>
+
+      {/* ---------------- PRO societies strip ---------------- */}
+      <section className="px-6 md:px-10 pb-8 relative z-10">
+        <div className="max-w-4xl mx-auto flex flex-col items-center gap-4">
+          <span className="text-mono text-[0.7rem] tracking-[0.25em] uppercase text-[var(--ep-muted)]">Export-ready for</span>
+          <div className="flex flex-wrap justify-center gap-3">
+            {societies.map((s) => (<span key={s} className="chip">{s}</span>))}
+          </div>
+        </div>
+      </section>
+
+      {/* ---------------- How it works ---------------- */}
+      <section id="how" className="py-24 px-6 md:px-10 relative z-10">
+        <div className="max-w-7xl mx-auto">
+          <motion.div className="text-center mb-14" variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
+            <span className="eyebrow">The flow</span>
+            <h2 className="text-heading text-3xl sm:text-4xl font-bold mt-3">
+              From first line to <span className="gradient-text">signed split sheet</span>
+            </h2>
+          </motion.div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {steps.map((s, i) => (
               <motion.div
-                key={index}
-                className="feature-card"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                key={s.n}
+                className="step-card"
+                variants={fadeUp}
+                initial="hidden"
+                whileInView="show"
                 viewport={{ once: true }}
-                transition={{ delay: index * 0.1, duration: 0.5 }}
-                whileHover={{ 
-                  y: -8, 
-                  borderColor: "rgba(255, 184, 0, 0.5)",
-                  boxShadow: "0 8px 30px rgba(255, 184, 0, 0.15)"
-                }}
-                data-testid={`feature-card-${index}`}
+                transition={{ delay: i * 0.08 }}
+                whileHover={{ y: -6 }}
               >
-                <motion.div 
-                  className="text-[#FFB800] mb-4"
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  transition={{ type: "spring", stiffness: 300 }}
-                >
-                  {feature.icon}
-                </motion.div>
-                <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
-                <p className="text-gray-400">{feature.description}</p>
+                <div className="step-num">{s.n}</div>
+                <h3 className="text-lg font-bold mt-3 mb-2 text-[var(--ep-ink)]">{s.title}</h3>
+                <p className="text-sm text-[var(--ep-muted)] leading-relaxed">{s.desc}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section id="pricing" className="py-24 px-6 md:px-12 bg-[#0A0A0A]">
+      {/* ---------------- Features ---------------- */}
+      <section id="features" className="py-24 px-6 md:px-10 relative z-10" style={{ background: "rgba(11,10,20,0.6)" }}>
         <div className="max-w-7xl mx-auto">
-          <motion.div
-            className="text-center mb-16"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="text-heading text-3xl sm:text-4xl font-bold mb-4">
-              Choose Your <span className="text-[#FFB800]">Plan</span>
+          <motion.div className="text-center mb-14" variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
+            <span className="eyebrow">Built for serious creators</span>
+            <h2 className="text-heading text-3xl sm:text-4xl font-bold mt-3">
+              Every feature earns <span className="gradient-text">trust</span>
             </h2>
-            <p className="text-gray-400 text-lg">Start free. Upgrade when you need legal features.</p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            <motion.div
-              className="pricing-card"
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              whileHover={{ y: -8, scale: 1.02 }}
-              transition={{ type: "spring", stiffness: 300 }}
-              data-testid="pricing-free-card"
-            >
-              <h3 className="text-2xl font-bold mb-2">Free</h3>
-              <p className="text-gray-400 mb-6">Perfect for trying out</p>
-              <div className="text-4xl font-bold mb-8 text-heading">$0<span className="text-lg text-gray-500">/mo</span></div>
-              
-              <ul className="space-y-4 mb-8">
-                <li className="flex items-start gap-3">
-                  <span className="text-green-500 mt-1">✓</span>
-                  <span>Up to 3 active songs</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-green-500 mt-1">✓</span>
-                  <span>Up to 3 collaborators per song</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-green-500 mt-1">✓</span>
-                  <span>Real-time editing</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-green-500 mt-1">✓</span>
-                  <span>Basic version history</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-red-500 mt-1">✗</span>
-                  <span className="text-gray-500">Split finalization</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-red-500 mt-1">✗</span>
-                  <span className="text-gray-500">Digital signatures</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-red-500 mt-1">✗</span>
-                  <span className="text-gray-500">Legal PDF export</span>
-                </li>
-              </ul>
-              
-              <motion.button
-                onClick={() => navigate("/auth?mode=signup")}
-                className="btn-secondary w-full"
-                data-testid="pricing-free-cta"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {features.map((f, i) => (
+              <motion.div
+                key={i}
+                className="feature-card"
+                variants={fadeUp}
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.06 }}
+                whileHover={{ y: -6 }}
+                data-testid={`feature-card-${i}`}
               >
-                Start Free
-              </motion.button>
+                <div className="icon-badge mb-4">{f.icon}</div>
+                <h3 className="text-lg font-bold mb-2 text-[var(--ep-ink)]">{f.title}</h3>
+                <p className="text-sm text-[var(--ep-muted)] leading-relaxed">{f.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ---------------- Comparison ---------------- */}
+      <section className="py-24 px-6 md:px-10 relative z-10">
+        <div className="max-w-5xl mx-auto">
+          <motion.div className="text-center mb-12" variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
+            <span className="eyebrow">Why El Profe</span>
+            <h2 className="text-heading text-3xl sm:text-4xl font-bold mt-3">
+              Beats the <span className="gradient-text">spreadsheet</span>. Costs less than the <span className="gradient-text-2">lawyer</span>.
+            </h2>
+          </motion.div>
+
+          <motion.div className="compare" variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
+            <div className="grid grid-cols-4 text-mono text-xs uppercase tracking-wider" style={{ background: "rgba(124,92,255,0.08)" }}>
+              <div className="p-4" />
+              <div className="p-4 text-center font-bold text-[var(--ep-muted)]">Spreadsheet</div>
+              <div className="p-4 text-center font-bold text-[var(--ep-muted)]">Lawyer drafts</div>
+              <div className="p-4 text-center font-bold gradient-text">El Profe</div>
+            </div>
+            {[
+              ["Contribution evidence", false, false, true],
+              ["Binding signatures", false, true, true],
+              ["Tamper-evident PDF", false, true, true],
+              ["Real-time co-writing", false, false, true],
+              ["Cost per song", "Free but fragile", "$$$", "Included"],
+            ].map((row, i) => (
+              <div key={i} className="grid grid-cols-4 items-center" style={{ borderTop: "1px solid var(--ep-border)" }}>
+                <div className="p-4 text-sm font-semibold text-[var(--ep-ink)]">{row[0]}</div>
+                {row.slice(1).map((cell, j) => (
+                  <div key={j} className="p-4 flex justify-center text-sm">
+                    {cell === true ? <Check className="w-5 h-5" style={{ color: "var(--ep-success)" }} />
+                      : cell === false ? <X className="w-5 h-5" style={{ color: "var(--ep-error)", opacity: 0.6 }} />
+                      : <span className={j === 2 ? "font-bold gradient-text" : "text-[var(--ep-muted)]"}>{cell}</span>}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ---------------- Pricing ---------------- */}
+      <section id="pricing" className="py-24 px-6 md:px-10 relative z-10" style={{ background: "rgba(11,10,20,0.6)" }}>
+        <div className="max-w-5xl mx-auto">
+          <motion.div className="text-center mb-14" variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
+            <span className="eyebrow">Pricing</span>
+            <h2 className="text-heading text-3xl sm:text-4xl font-bold mt-3">
+              Start free. Go <span className="gradient-text">Pro</span> for the legal layer.
+            </h2>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Free */}
+            <motion.div className="pricing-card" variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} whileHover={{ y: -6 }} data-testid="pricing-free-card">
+              <h3 className="text-xl font-bold text-[var(--ep-ink)]">Free</h3>
+              <p className="text-[var(--ep-muted)] mb-5">Perfect for trying it out</p>
+              <div className="text-heading text-5xl font-extrabold mb-7">$0<span className="text-base font-normal text-[var(--ep-muted)]">/mo</span></div>
+              <ul className="space-y-3 mb-8 text-sm">
+                {[
+                  ["Up to 3 active songs", true],
+                  ["Up to 3 collaborators per song", true],
+                  ["Real-time editing", true],
+                  ["Basic version history", true],
+                  ["Split finalization", false],
+                  ["Digital signatures", false],
+                  ["Legal PDF export", false],
+                ].map(([t, ok], i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    {ok ? <Check className="w-4 h-4 mt-0.5 text-[var(--ep-success)] shrink-0" />
+                        : <X className="w-4 h-4 mt-0.5 text-[var(--ep-muted)] shrink-0" />}
+                    <span className={ok ? "" : "text-[var(--ep-muted)] line-through"}>{t}</span>
+                  </li>
+                ))}
+              </ul>
+              <button onClick={goSignup} className="btn-secondary w-full" data-testid="pricing-free-cta">Start Free</button>
             </motion.div>
 
-            <motion.div
-              className="pricing-card pro"
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              whileHover={{ y: -12, scale: 1.03 }}
-              transition={{ type: "spring", stiffness: 300 }}
-              data-testid="pricing-pro-card"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-2xl font-bold">Pro</h3>
-                <span className="bg-[#FFB800] text-black px-3 py-1 rounded text-sm font-bold">POPULAR</span>
+            {/* Pro */}
+            <motion.div className="pricing-card pro" variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} whileHover={{ y: -10 }} data-testid="pricing-pro-card">
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="text-xl font-bold text-[var(--ep-ink)]">Pro</h3>
+                <span className="text-mono text-xs font-bold px-3 py-1 rounded-full text-white" style={{ background: "linear-gradient(110deg, var(--ep-violet), var(--ep-magenta))" }}>POPULAR</span>
               </div>
-              <p className="text-gray-400 mb-6">For professional writers</p>
-              <div className="text-4xl font-bold mb-8 text-heading text-[#FFB800]">$19<span className="text-lg text-gray-500">/mo</span></div>
-              
-              <ul className="space-y-4 mb-8">
-                <li className="flex items-start gap-3">
-                  <span className="text-[#FFB800] mt-1">✓</span>
-                  <span className="font-semibold">Unlimited songs</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-[#FFB800] mt-1">✓</span>
-                  <span className="font-semibold">Unlimited collaborators</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-[#FFB800] mt-1">✓</span>
-                  <span className="font-semibold">Full contribution analytics</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-[#FFB800] mt-1">✓</span>
-                  <span className="font-semibold">Manual split management</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-[#FFB800] mt-1">✓</span>
-                  <span className="font-semibold">Digital signatures</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-[#FFB800] mt-1">✓</span>
-                  <span className="font-semibold">Legal PDF export</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-[#FFB800] mt-1">✓</span>
-                  <span className="font-semibold">Song & split locking</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-[#FFB800] mt-1">✓</span>
-                  <span className="font-semibold">Priority support</span>
-                </li>
+              <p className="text-[var(--ep-muted)] mb-5">For professional writers</p>
+              <div className="text-heading text-5xl font-extrabold mb-7 gradient-text inline-block">$19<span className="text-base font-normal text-[var(--ep-muted)]" style={{ WebkitTextFillColor: "var(--ep-muted)" }}>/mo</span></div>
+              <ul className="space-y-3 mb-8 text-sm">
+                {[
+                  "Unlimited songs",
+                  "Unlimited collaborators",
+                  "Full contribution analytics",
+                  "Manual split management",
+                  "Digital signatures",
+                  "Legal PDF export",
+                  "Song & split locking",
+                  "Priority support",
+                ].map((t, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <Check className="w-4 h-4 mt-0.5 text-[var(--ep-cyan)] shrink-0" />
+                    <span className="font-medium text-[var(--ep-ink)]">{t}</span>
+                  </li>
+                ))}
               </ul>
-              
-              <motion.button
-                onClick={() => navigate("/auth?mode=signup")}
-                className="btn-primary w-full glow-amber"
-                data-testid="pricing-pro-cta"
-                whileHover={{ scale: 1.05, boxShadow: "0 0 50px rgba(255, 184, 0, 0.5)" }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Start Pro Trial
-              </motion.button>
+              <button onClick={goSignup} className="btn-primary w-full" data-testid="pricing-pro-cta">Start Pro Trial</button>
             </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="py-24 px-6 md:px-12 relative">
-        <div className="max-w-4xl mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="text-heading text-3xl sm:text-5xl font-bold mb-6">
-              Protect Your <span className="text-[#FFB800]">Creative Work</span>
+      {/* ---------------- FAQ ---------------- */}
+      <section id="faq" className="py-24 px-6 md:px-10 relative z-10">
+        <div className="max-w-3xl mx-auto">
+          <motion.div className="text-center mb-12" variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
+            <span className="eyebrow">Questions</span>
+            <h2 className="text-heading text-3xl sm:text-4xl font-bold mt-3">Good to know</h2>
+          </motion.div>
+
+          <div className="space-y-3">
+            {faqs.map((f, i) => (
+              <motion.details
+                key={i}
+                className="group rounded-xl border border-[var(--ep-border)] bg-[var(--ep-surface)] px-5 py-4"
+                variants={fadeUp}
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.05 }}
+              >
+                <summary className="flex items-center justify-between cursor-pointer list-none font-semibold text-[var(--ep-ink)]">
+                  {f.q}
+                  <ChevronRight className="w-4 h-4 text-[var(--ep-cyan)] transition-transform group-open:rotate-90" />
+                </summary>
+                <p className="text-sm text-[var(--ep-muted)] leading-relaxed mt-3">{f.a}</p>
+              </motion.details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ---------------- Final CTA ---------------- */}
+      <section className="py-28 px-6 md:px-10 relative z-10 overflow-hidden">
+        <div className="max-w-3xl mx-auto text-center relative z-10">
+          <motion.div variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
+            <Scale className="w-10 h-10 mx-auto mb-5 text-[var(--ep-violet-2)]" />
+            <h2 className="text-heading text-4xl sm:text-5xl font-extrabold mb-5 leading-tight">
+              Protect your <span className="gradient-text">creative work</span>
             </h2>
-            <p className="text-gray-400 text-lg mb-8 max-w-2xl mx-auto">
-              Join professional songwriters who trust Professor App for collaboration and legal documentation.
+            <p className="text-[var(--ep-muted)] text-lg mb-9 max-w-xl mx-auto">
+              Join the songwriters who settle splits with evidence, sign with intent,
+              and walk away with a document that holds up.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <motion.button
-                onClick={() => navigate("/auth?mode=signup")}
-                className="btn-primary glow-amber"
-                data-testid="final-cta-signup"
-                whileHover={{ scale: 1.05, boxShadow: "0 0 50px rgba(255, 184, 0, 0.5)" }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Create Free Account
+              <motion.button onClick={goSignup} className="btn-primary" data-testid="final-cta-signup" whileTap={{ scale: 0.96 }}>
+                Create free account <ChevronRight className="w-4 h-4" />
               </motion.button>
-              <motion.button
-                onClick={() => navigate("/auth?mode=signup")}
-                className="btn-secondary"
-                data-testid="final-cta-pro"
-                whileHover={{ scale: 1.05, borderColor: "rgba(255, 184, 0, 0.6)" }}
-                whileTap={{ scale: 0.95 }}
-              >
+              <motion.button onClick={goSignup} className="btn-secondary" data-testid="final-cta-pro" whileTap={{ scale: 0.96 }}>
                 Upgrade to Pro
               </motion.button>
             </div>
@@ -434,10 +453,19 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-white/10 py-8 px-6 md:px-12">
-        <div className="max-w-7xl mx-auto text-center text-gray-500 text-sm">
-          <p>© 2025 Professor App by José "El Profesor Gómez". All rights reserved.</p>
+      {/* ---------------- Footer ---------------- */}
+      <footer className="border-t border-[var(--ep-border)] py-10 px-6 md:px-10 relative z-10">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2.5">
+            <img src={LOGO_URL} alt="El Profe" className="h-8 w-auto rounded-md" style={{ filter: "drop-shadow(0 0 10px rgba(124,92,255,0.5))" }} />
+            <span className="text-mono text-xs text-[var(--ep-muted)]">EL&nbsp;PROFE</span>
+          </div>
+          <p className="text-mono text-xs text-[var(--ep-muted)] text-center">
+            © 2025 El Profe by José “El Profesor Gómez”. All rights reserved.
+          </p>
+          <div className="flex items-center gap-2 text-mono text-xs text-[var(--ep-muted)]">
+            <FileText className="w-3.5 h-3.5" /> Creative on surface · legal underneath
+          </div>
         </div>
       </footer>
     </div>

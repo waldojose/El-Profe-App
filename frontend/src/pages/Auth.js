@@ -90,7 +90,7 @@ const Auth = ({ setToken, setUser }) => {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-3 bg-[#121212] border border-white/10 rounded-sm focus:border-[#FFB800] focus:outline-none transition-colors"
+                className="w-full px-4 py-3 bg-[#121212] border border-white/10 rounded-sm focus:border-[#7c5cff] focus:outline-none transition-colors"
                 placeholder="your@email.com"
                 data-testid="auth-email-input"
               />
@@ -107,7 +107,7 @@ const Auth = ({ setToken, setUser }) => {
                   name="artist_name"
                   value={formData.artist_name}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-[#121212] border border-white/10 rounded-sm focus:border-[#FFB800] focus:outline-none transition-colors"
+                  className="w-full px-4 py-3 bg-[#121212] border border-white/10 rounded-sm focus:border-[#7c5cff] focus:outline-none transition-colors"
                   placeholder="Your stage name"
                   data-testid="auth-artist-name-input"
                 />
@@ -126,7 +126,7 @@ const Auth = ({ setToken, setUser }) => {
                   value={formData.password}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 bg-[#121212] border border-white/10 rounded-sm focus:border-[#FFB800] focus:outline-none transition-colors pr-12"
+                  className="w-full px-4 py-3 bg-[#121212] border border-white/10 rounded-sm focus:border-[#7c5cff] focus:outline-none transition-colors pr-12"
                   placeholder="••••••••"
                   data-testid="auth-password-input"
                 />
@@ -157,7 +157,7 @@ const Auth = ({ setToken, setUser }) => {
                 setMode(mode === "login" ? "signup" : "login");
                 setFormData({ email: "", password: "", artist_name: "" });
               }}
-              className="text-gray-400 hover:text-[#FFB800] transition-colors"
+              className="text-gray-400 hover:text-[#7c5cff] transition-colors"
               data-testid="auth-toggle-mode"
             >
               {mode === "login" ? "Don't have an account? Sign up" : "Already have an account? Sign in"}

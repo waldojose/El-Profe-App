@@ -130,7 +130,7 @@ const Dashboard = ({ token, logout, user, setUser }) => {
               </button>
             )}
             {currentUser?.is_pro && (
-              <div className="flex items-center gap-2 bg-[#FFB800]/20 text-[#FFB800] px-3 py-1 rounded-sm text-sm font-bold">
+              <div className="flex items-center gap-2 bg-[#7c5cff]/20 text-[#7c5cff] px-3 py-1 rounded-sm text-sm font-bold">
                 <Crown size={16} />
                 PRO
               </div>
@@ -163,7 +163,7 @@ const Dashboard = ({ token, logout, user, setUser }) => {
             transition={{ duration: 0.6 }}
           >
             <h1 className="text-heading text-4xl sm:text-5xl font-bold mb-4">
-              Your <span className="text-[#FFB800]">Songs</span>
+              Your <span className="text-[#7c5cff]">Songs</span>
             </h1>
             <p className="text-gray-400 text-lg">
               {currentUser?.artist_name ? `Welcome back, ${currentUser.artist_name}` : "Welcome back"}
@@ -215,7 +215,7 @@ const Dashboard = ({ token, logout, user, setUser }) => {
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-[#FFB800]/20 rounded-sm flex items-center justify-center text-[#FFB800]">
+                    <div className="w-12 h-12 bg-[#7c5cff]/20 rounded-sm flex items-center justify-center text-[#7c5cff]">
                       <Music size={24} />
                     </div>
                     <div>
@@ -225,7 +225,7 @@ const Dashboard = ({ token, logout, user, setUser }) => {
                       </p>
                     </div>
                   </div>
-                  <ChevronRight size={20} className="text-gray-600 group-hover:text-[#FFB800] transition-colors" />
+                  <ChevronRight size={20} className="text-gray-600 group-hover:text-[#7c5cff] transition-colors" />
                 </div>
                 
                 <div className="text-sm text-gray-400">
@@ -233,7 +233,7 @@ const Dashboard = ({ token, logout, user, setUser }) => {
                 </div>
 
                 {song.is_locked && (
-                  <div className="mt-3 text-xs text-[#FFB800] flex items-center gap-1">
+                  <div className="mt-3 text-xs text-[#7c5cff] flex items-center gap-1">
                     <FileText size={14} />
                     Locked
                   </div>
@@ -246,7 +246,7 @@ const Dashboard = ({ token, logout, user, setUser }) => {
         {/* Plan Limit Warning */}
         {!currentUser?.is_pro && songs.length >= 3 && (
           <motion.div
-            className="mt-8 backdrop-studio p-6 rounded-sm border border-[#FFB800]/30"
+            className="mt-8 backdrop-studio p-6 rounded-sm border border-[#7c5cff]/30"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             data-testid="plan-limit-warning"
@@ -254,7 +254,7 @@ const Dashboard = ({ token, logout, user, setUser }) => {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-bold mb-2 flex items-center gap-2">
-                  <Crown className="text-[#FFB800]" size={20} />
+                  <Crown className="text-[#7c5cff]" size={20} />
                   Free Plan Limit Reached
                 </h3>
                 <p className="text-gray-400 text-sm">Upgrade to Pro for unlimited songs and legal features</p>
@@ -319,7 +319,7 @@ const Dashboard = ({ token, logout, user, setUser }) => {
             </Button>
             <Button
               onClick={handleCreateSong}
-              className="bg-[#FFB800] text-black hover:bg-[#e0a600] font-bold"
+              className="bg-[#7c5cff] text-white hover:bg-[#6a4ef0] font-bold"
               data-testid="new-song-create-btn"
             >
               Create Song

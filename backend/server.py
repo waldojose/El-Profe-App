@@ -1116,3 +1116,22 @@ logger = logging.getLogger(__name__)
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
+
+
+# ---------------------------------------------------------------------------
+# Serve the built React frontend (single-origin, so a tunnel needs only :8000).
+# Registered AFTER the API router so /api/* and /ws/* always match first.
+# ---------------------------------------------------------------------------
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+_BUILD_DIR = Path(__file__).resolve().parent.parent / "frontend" / "build"
+if _BUILD_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(_BUILD_DIR / "static")), name="static")
+
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        candidate = _BUILD_DIR / full_path
+        if full_path and candidate.is_file():
+            return FileResponse(str(candidate))
+        return FileResponse(str(_BUILD_DIR / "index.html"))

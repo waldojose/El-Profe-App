@@ -127,7 +127,7 @@ const Network = ({ token, user }) => {
             className="backdrop-studio p-6 rounded-sm"
           >
             <div className="flex items-center gap-2 mb-6">
-              <Users className="text-[#FFB800]" size={24} />
+              <Users className="text-[#7c5cff]" size={24} />
               <h2 className="text-heading text-2xl font-bold">Discover Creators</h2>
             </div>
 
@@ -144,7 +144,7 @@ const Network = ({ token, user }) => {
                   />
                   <Button
                     onClick={handleSearch}
-                    className="bg-[#FFB800] text-black hover:bg-[#e0a600] font-bold"
+                    className="bg-[#7c5cff] text-white hover:bg-[#6a4ef0] font-bold"
                     data-testid="search-btn"
                   >
                     <Search size={16} />
@@ -195,7 +195,7 @@ const Network = ({ token, user }) => {
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-[#FFB800]/20 rounded-full flex items-center justify-center text-[#FFB800] font-bold text-xl overflow-hidden">
+                    <div className="w-12 h-12 bg-[#7c5cff]/20 rounded-full flex items-center justify-center text-[#7c5cff] font-bold text-xl overflow-hidden">
                       {creator.photo_url ? (
                         <img src={creator.photo_url} alt={creator.artist_name} className="w-full h-full object-cover" />
                       ) : (
@@ -218,7 +218,7 @@ const Network = ({ token, user }) => {
                     </div>
                   </div>
                   {creator.is_pro && (
-                    <div className="flex items-center gap-1 bg-[#FFB800]/20 text-[#FFB800] px-2 py-1 rounded-sm text-xs font-bold">
+                    <div className="flex items-center gap-1 bg-[#7c5cff]/20 text-[#7c5cff] px-2 py-1 rounded-sm text-xs font-bold">
                       <Crown size={12} />
                       PRO
                     </div>
@@ -228,7 +228,7 @@ const Network = ({ token, user }) => {
                 {creator.music_styles && creator.music_styles.length > 0 && (
                   <div className="flex flex-wrap gap-1 mb-3">
                     {creator.music_styles.map(style => (
-                      <span key={style} className="text-xs bg-[#FFB800]/10 text-[#FFB800] px-2 py-1 rounded-sm">
+                      <span key={style} className="text-xs bg-[#7c5cff]/10 text-[#7c5cff] px-2 py-1 rounded-sm">
                         {style}
                       </span>
                     ))}
@@ -292,7 +292,7 @@ const Network = ({ token, user }) => {
             </Button>
             <Button
               onClick={handleSendMessage}
-              className="bg-[#FFB800] text-black hover:bg-[#e0a600] font-bold"
+              className="bg-[#7c5cff] text-white hover:bg-[#6a4ef0] font-bold"
               data-testid="send-message-btn"
             >
               <MessageCircle size={16} className="mr-2" />

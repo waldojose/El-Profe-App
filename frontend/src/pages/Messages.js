@@ -113,7 +113,7 @@ const Messages = ({ token, user }) => {
           {/* Conversations List */}
           <div className="col-span-4 backdrop-studio rounded-sm p-4 overflow-y-auto">
             <h2 className="font-bold mb-4 flex items-center gap-2">
-              <MessageCircle className="text-[#FFB800]" size={20} />
+              <MessageCircle className="text-[#7c5cff]" size={20} />
               Conversations
             </h2>
 
@@ -135,7 +135,7 @@ const Messages = ({ token, user }) => {
                     key={conv.partner_id}
                     className={`p-3 rounded-sm cursor-pointer transition-colors ${
                       selectedConversation?.partner_id === conv.partner_id
-                        ? 'bg-[#FFB800]/20 border border-[#FFB800]/50'
+                        ? 'bg-[#7c5cff]/20 border border-[#7c5cff]/50'
                         : 'bg-[#121212] hover:bg-[#1a1a1a]'
                     }`}
                     onClick={() => setSelectedConversation(conv)}
@@ -144,7 +144,7 @@ const Messages = ({ token, user }) => {
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-[#FFB800]/20 rounded-full flex items-center justify-center text-[#FFB800] font-bold overflow-hidden">
+                        <div className="w-10 h-10 bg-[#7c5cff]/20 rounded-full flex items-center justify-center text-[#7c5cff] font-bold overflow-hidden">
                           {conv.partner.photo_url ? (
                             <img src={conv.partner.photo_url} alt={conv.partner.artist_name} className="w-full h-full object-cover" />
                           ) : (
@@ -178,7 +178,7 @@ const Messages = ({ token, user }) => {
                 {/* Chat Header */}
                 <div className="p-4 border-b border-white/10">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-[#FFB800]/20 rounded-full flex items-center justify-center text-[#FFB800] font-bold text-xl overflow-hidden">
+                    <div className="w-12 h-12 bg-[#7c5cff]/20 rounded-full flex items-center justify-center text-[#7c5cff] font-bold text-xl overflow-hidden">
                       {selectedConversation.partner.photo_url ? (
                         <img src={selectedConversation.partner.photo_url} alt={selectedConversation.partner.artist_name} className="w-full h-full object-cover" />
                       ) : (
@@ -204,7 +204,7 @@ const Messages = ({ token, user }) => {
                       <div
                         className={`max-w-[70%] p-3 rounded-lg ${
                           msg.sender_id === user?.id
-                            ? 'bg-[#FFB800] text-black'
+                            ? 'bg-[#7c5cff] text-white'
                             : 'bg-[#121212] text-white'
                         }`}
                       >
@@ -240,7 +240,7 @@ const Messages = ({ token, user }) => {
                     />
                     <Button
                       onClick={handleSendMessage}
-                      className="bg-[#FFB800] text-black hover:bg-[#e0a600] font-bold"
+                      className="bg-[#7c5cff] text-white hover:bg-[#6a4ef0] font-bold"
                       data-testid="send-message-btn"
                     >
                       <Send size={20} />

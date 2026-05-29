@@ -199,7 +199,7 @@ const ProfileModal = ({ user, token, onClose, onUpdate }) => {
               value={formData.pro_affiliation}
               onChange={handleChange}
               required
-              className="w-full px-4 py-3 bg-[#121212] border border-white/10 rounded-md text-white focus:border-[#FFB800] focus:outline-none"
+              className="w-full px-4 py-3 bg-[#121212] border border-white/10 rounded-md text-white focus:border-[#7c5cff] focus:outline-none"
               data-testid="profile-pro-select"
             >
               <option value="">Select PRO</option>
@@ -236,7 +236,7 @@ const ProfileModal = ({ user, token, onClose, onUpdate }) => {
                   key={role}
                   className={`flex items-center gap-2 p-3 rounded-md border cursor-pointer transition-colors ${
                     formData.roles.includes(role.toLowerCase())
-                      ? 'bg-[#FFB800]/20 border-[#FFB800]'
+                      ? 'bg-[#7c5cff]/20 border-[#7c5cff]'
                       : 'bg-[#121212] border-white/10 hover:border-white/30'
                   }`}
                   data-testid={`role-${role.toLowerCase()}`}
@@ -245,7 +245,7 @@ const ProfileModal = ({ user, token, onClose, onUpdate }) => {
                     type="checkbox"
                     checked={formData.roles.includes(role.toLowerCase())}
                     onChange={() => handleRoleToggle(role.toLowerCase())}
-                    className="w-4 h-4 accent-[#FFB800]"
+                    className="w-4 h-4 accent-[#7c5cff]"
                   />
                   <span className="text-sm">{role}</span>
                 </label>
@@ -263,7 +263,7 @@ const ProfileModal = ({ user, token, onClose, onUpdate }) => {
                   key={style}
                   className={`flex items-center gap-2 p-2 rounded-md border cursor-pointer transition-colors text-sm ${
                     formData.music_styles.includes(style)
-                      ? 'bg-[#FFB800]/20 border-[#FFB800]'
+                      ? 'bg-[#7c5cff]/20 border-[#7c5cff]'
                       : 'bg-[#121212] border-white/10 hover:border-white/30'
                   }`}
                   data-testid={`style-${style.toLowerCase()}`}
@@ -272,7 +272,7 @@ const ProfileModal = ({ user, token, onClose, onUpdate }) => {
                     type="checkbox"
                     checked={formData.music_styles.includes(style)}
                     onChange={() => handleMusicStyleToggle(style)}
-                    className="w-3 h-3 accent-[#FFB800]"
+                    className="w-3 h-3 accent-[#7c5cff]"
                   />
                   <span className="text-xs">{style}</span>
                 </label>
@@ -313,7 +313,7 @@ const ProfileModal = ({ user, token, onClose, onUpdate }) => {
             <Button
               type="submit"
               disabled={loading}
-              className="bg-[#FFB800] text-black hover:bg-[#e0a600] font-bold"
+              className="bg-[#7c5cff] text-white hover:bg-[#6a4ef0] font-bold"
               data-testid="profile-save-btn"
             >
               {loading ? "Saving..." : isRequired ? "Complete Profile" : "Save Changes"}

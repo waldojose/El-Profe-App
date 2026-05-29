@@ -226,14 +226,14 @@ const Editor = ({ token, user }) => {
         <div className="col-span-2 space-y-4 overflow-y-auto scroll-fade">
           <div className="backdrop-studio p-4 rounded-sm">
             <h3 className="text-sm font-bold mb-3 flex items-center gap-2">
-              <Users size={16} className="text-[#FFB800]" />
+              <Users size={16} className="text-[#7c5cff]" />
               Collaborators
             </h3>
             <div className="space-y-2 text-xs text-gray-400">
               <p className="mb-3">Total: {song?.collaborators?.length || 1}</p>
               <button
                 onClick={() => setShowAddCollaborator(true)}
-                className="w-full px-3 py-2 bg-[#FFB800] text-black text-xs font-bold rounded-sm hover:bg-[#e0a600] transition-colors"
+                className="w-full px-3 py-2 bg-[#7c5cff] text-white text-xs font-bold rounded-sm hover:bg-[#6a4ef0] transition-colors"
                 data-testid="add-collaborator-btn"
               >
                 + Add Writer
@@ -332,7 +332,7 @@ const Editor = ({ token, user }) => {
             </Button>
             <Button
               onClick={handleAddCollaborator}
-              className="bg-[#FFB800] text-black hover:bg-[#e0a600] font-bold"
+              className="bg-[#7c5cff] text-white hover:bg-[#6a4ef0] font-bold"
               data-testid="confirm-add-collaborator-btn"
             >
               Add Collaborator

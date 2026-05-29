@@ -41,7 +41,7 @@ const SynonymsPanel = ({ selectedWord, token }) => {
   return (
     <div className="backdrop-studio p-6 rounded-sm" data-testid="synonyms-panel">
       <div className="flex items-center gap-2 mb-6">
-        <Sparkles className="text-[#FFB800]" size={20} />
+        <Sparkles className="text-[#7c5cff]" size={20} />
         <h3 className="font-bold text-lg">Writing Tools</h3>
       </div>
 
@@ -56,7 +56,7 @@ const SynonymsPanel = ({ selectedWord, token }) => {
           />
           <button
             type="submit"
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-[#FFB800] transition-colors"
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-[#7c5cff] transition-colors"
             data-testid="synonyms-search-btn"
           >
             <Search size={16} />
@@ -73,7 +73,7 @@ const SynonymsPanel = ({ selectedWord, token }) => {
             {synonyms.map((syn, index) => (
               <span
                 key={index}
-                className="px-3 py-1 bg-[#121212] border border-white/10 rounded-sm text-sm hover:border-[#FFB800] hover:text-[#FFB800] transition-colors cursor-pointer"
+                className="px-3 py-1 bg-[#121212] border border-white/10 rounded-sm text-sm hover:border-[#7c5cff] hover:text-[#7c5cff] transition-colors cursor-pointer"
                 data-testid={`synonym-${index}`}
               >
                 {syn}

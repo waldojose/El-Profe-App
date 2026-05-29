@@ -40,24 +40,24 @@ const ContributionPanel = ({ songId, token }) => {
   return (
     <div className="backdrop-studio p-6 rounded-sm" data-testid="contribution-panel">
       <div className="flex items-center gap-2 mb-6">
-        <BarChart3 className="text-[#FFB800]" size={20} />
+        <BarChart3 className="text-[#7c5cff]" size={20} />
         <h3 className="font-bold text-lg">Contributions</h3>
       </div>
 
-      <div className="mb-6 p-4 bg-[#121212] rounded-sm border border-[#FFB800]/30">
+      <div className="mb-6 p-4 bg-[#121212] rounded-sm border border-[#7c5cff]/30">
         <p className="text-xs text-gray-500 mb-1">Total Characters</p>
-        <p className="text-2xl font-bold text-mono text-[#FFB800]">{totalChars}</p>
+        <p className="text-2xl font-bold text-mono text-[#7c5cff]">{totalChars}</p>
         <p className="text-xs text-gray-400 mt-2">{contributions.length} collaborator(s)</p>
       </div>
 
-      <div className="mb-6 p-4 bg-gradient-to-r from-[#FFB800]/10 to-[#FF3B30]/10 rounded-sm border border-[#FFB800]/50">
-        <p className="text-xs font-bold text-[#FFB800] mb-3">📊 CONTRIBUTION PERCENTAGES</p>
+      <div className="mb-6 p-4 bg-gradient-to-r from-[#7c5cff]/10 to-[#22d3ee]/10 rounded-sm border border-[#7c5cff]/50">
+        <p className="text-xs font-bold text-[#7c5cff] mb-3">📊 CONTRIBUTION PERCENTAGES</p>
         {contributions.map((contrib, index) => {
           const percentage = totalChars > 0 ? ((contrib.net_chars / totalChars) * 100).toFixed(1) : 0;
           return (
             <div key={contrib.user_id} className="flex items-center justify-between mb-2">
               <span className="text-sm font-semibold">{contrib.artist_name}</span>
-              <span className="text-lg font-bold text-[#FFB800] text-mono">{percentage}%</span>
+              <span className="text-lg font-bold text-[#7c5cff] text-mono">{percentage}%</span>
             </div>
           );
         })}
@@ -95,13 +95,13 @@ const ContributionPanel = ({ songId, token }) => {
                 </div>
                 <div>
                   <p className="text-gray-500">Net</p>
-                  <p className="font-bold text-[#FFB800] text-mono">{contrib.net_chars}</p>
+                  <p className="font-bold text-[#7c5cff] text-mono">{contrib.net_chars}</p>
                 </div>
               </div>
 
               <div className="mt-3 h-2 bg-[#0A0A0A] rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-[#FFB800] to-[#FF3B30]"
+                  className="h-full bg-gradient-to-r from-[#7c5cff] to-[#22d3ee]"
                   style={{ width: `${totalChars > 0 ? (contrib.net_chars / totalChars) * 100 : 0}%` }}
                 ></div>
               </div>
@@ -113,9 +113,9 @@ const ContributionPanel = ({ songId, token }) => {
         )}
       </div>
 
-      <div className="mt-6 p-3 bg-[#FFB800]/10 border border-[#FFB800]/30 rounded-sm">
+      <div className="mt-6 p-3 bg-[#7c5cff]/10 border border-[#7c5cff]/30 rounded-sm">
         <p className="text-xs text-gray-400">
-          <strong className="text-[#FFB800]">Note:</strong> This data supports negotiations but does not auto-assign ownership.
+          <strong className="text-[#7c5cff]">Note:</strong> This data supports negotiations but does not auto-assign ownership.
         </p>
       </div>
     </div>
