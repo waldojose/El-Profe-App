@@ -6,11 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useI18n } from "../i18n/I18nProvider";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 const ProfileModal = ({ user, token, onClose, onUpdate }) => {
+  const { t } = useI18n();
   const [formData, setFormData] = useState({
     legal_name: user?.legal_name || "",
     artist_name: user?.artist_name || "",
@@ -50,7 +52,7 @@ const ProfileModal = ({ user, token, onClose, onUpdate }) => {
     const file = e.target.files[0];
     if (file) {
       if (file.size > 2 * 1024 * 1024) {
-        toast.error("Photo must be less than 2MB");
+        toast.error(t("profile.toastPhotoTooLarge"));
         return;
       }
       
@@ -69,7 +71,7 @@ const ProfileModal = ({ user, token, onClose, onUpdate }) => {
     setLoading(true);
 
     if (!formData.legal_name || !formData.artist_name || !formData.country || !formData.pro_affiliation || formData.roles.length === 0) {
-      toast.error("Please fill all required fields and select at least one role");
+      toast.error(t("profile.toastRequiredFields"));
       setLoading(false);
       return;
     }
@@ -82,7 +84,7 @@ const ProfileModal = ({ user, token, onClose, onUpdate }) => {
       );
       onUpdate(response.data);
     } catch (error) {
-      toast.error("Failed to update profile");
+      toast.error(t("profile.toastUpdateFailed"));
     } finally {
       setLoading(false);
     }
@@ -98,11 +100,11 @@ const ProfileModal = ({ user, token, onClose, onUpdate }) => {
       >
         <DialogHeader>
           <DialogTitle className="text-heading text-2xl">
-            {isRequired ? "Complete Your Profile" : "Edit Profile"}
+            {isRequired ? t("profile.titleComplete") : t("profile.titleEdit")}
           </DialogTitle>
           {isRequired && (
             <DialogDescription className="text-gray-400">
-              You must complete your profile before collaborating. This information is used for legal split sheets.
+              {t("profile.requiredDescription")}
             </DialogDescription>
           )}
         </DialogHeader>
@@ -111,7 +113,7 @@ const ProfileModal = ({ user, token, onClose, onUpdate }) => {
           {/* Photo Upload */}
           <div>
             <Label className="text-sm font-medium mb-2 block">
-              Profile Photo (Optional)
+              {t("profile.profilePhoto")}
             </Label>
             <div className="flex items-center gap-4">
               <div className="w-24 h-24 bg-[#121212] rounded-full flex items-center justify-center overflow-hidden border border-white/10">
@@ -134,16 +136,16 @@ const ProfileModal = ({ user, token, onClose, onUpdate }) => {
                   htmlFor="photo-upload"
                   className="btn-secondary text-sm cursor-pointer inline-block"
                 >
-                  Choose Photo
+                  {t("profile.choosePhoto")}
                 </label>
-                <p className="text-xs text-gray-400 mt-1">Max 2MB, JPG/PNG</p>
+                <p className="text-xs text-gray-400 mt-1">{t("profile.photoHint")}</p>
               </div>
             </div>
           </div>
 
           <div>
             <Label htmlFor="legal_name" className="text-sm font-medium mb-2 block">
-              Legal Full Name <span className="text-red-500">*</span>
+              {t("profile.legalName")} <span className="text-red-500">*</span>
             </Label>
             <Input
               id="legal_name"
@@ -152,14 +154,14 @@ const ProfileModal = ({ user, token, onClose, onUpdate }) => {
               onChange={handleChange}
               required
               className="bg-[#121212] border-white/10 text-white"
-              placeholder="John Doe"
+              placeholder={t("profile.legalNamePlaceholder")}
               data-testid="profile-legal-name-input"
             />
           </div>
 
           <div>
             <Label htmlFor="artist_name" className="text-sm font-medium mb-2 block">
-              Artist / Display Name <span className="text-red-500">*</span>
+              {t("profile.artistName")} <span className="text-red-500">*</span>
             </Label>
             <Input
               id="artist_name"
@@ -168,14 +170,14 @@ const ProfileModal = ({ user, token, onClose, onUpdate }) => {
               onChange={handleChange}
               required
               className="bg-[#121212] border-white/10 text-white"
-              placeholder="J Doe"
+              placeholder={t("profile.artistNamePlaceholder")}
               data-testid="profile-artist-name-input"
             />
           </div>
 
           <div>
             <Label htmlFor="country" className="text-sm font-medium mb-2 block">
-              Country <span className="text-red-500">*</span>
+              {t("profile.country")} <span className="text-red-500">*</span>
             </Label>
             <Input
               id="country"
@@ -184,14 +186,14 @@ const ProfileModal = ({ user, token, onClose, onUpdate }) => {
               onChange={handleChange}
               required
               className="bg-[#121212] border-white/10 text-white"
-              placeholder="United States"
+              placeholder={t("profile.countryPlaceholder")}
               data-testid="profile-country-input"
             />
           </div>
 
           <div>
             <Label htmlFor="pro_affiliation" className="text-sm font-medium mb-2 block">
-              PRO Affiliation <span className="text-red-500">*</span>
+              {t("profile.proAffiliation")} <span className="text-red-500">*</span>
             </Label>
             <select
               id="pro_affiliation"
@@ -202,18 +204,18 @@ const ProfileModal = ({ user, token, onClose, onUpdate }) => {
               className="w-full px-4 py-3 bg-[#121212] border border-white/10 rounded-md text-white focus:border-[#7c5cff] focus:outline-none"
               data-testid="profile-pro-select"
             >
-              <option value="">Select PRO</option>
+              <option value="">{t("profile.selectPro")}</option>
               <option value="ASCAP">ASCAP</option>
               <option value="BMI">BMI</option>
               <option value="SESAC">SESAC</option>
-              <option value="Other">Other</option>
-              <option value="None">None</option>
+              <option value="Other">{t("profile.proOther")}</option>
+              <option value="None">{t("profile.proNone")}</option>
             </select>
           </div>
 
           <div>
             <Label htmlFor="publisher" className="text-sm font-medium mb-2 block">
-              Publisher / Editor (Optional)
+              {t("profile.publisher")}
             </Label>
             <Input
               id="publisher"
@@ -221,14 +223,14 @@ const ProfileModal = ({ user, token, onClose, onUpdate }) => {
               value={formData.publisher}
               onChange={handleChange}
               className="bg-[#121212] border-white/10 text-white"
-              placeholder="Publisher name"
+              placeholder={t("profile.publisherPlaceholder")}
               data-testid="profile-publisher-input"
             />
           </div>
 
           <div>
             <Label className="text-sm font-medium mb-2 block">
-              Roles <span className="text-red-500">*</span> <span className="text-gray-500 font-normal">(Select all that apply)</span>
+              {t("profile.roles")} <span className="text-red-500">*</span> <span className="text-gray-500 font-normal">{t("profile.selectAllThatApply")}</span>
             </Label>
             <div className="grid grid-cols-2 gap-3">
               {["Writer", "Producer", "Composer", "Manager", "Publisher"].map(role => (
@@ -247,7 +249,7 @@ const ProfileModal = ({ user, token, onClose, onUpdate }) => {
                     onChange={() => handleRoleToggle(role.toLowerCase())}
                     className="w-4 h-4 accent-[#7c5cff]"
                   />
-                  <span className="text-sm">{role}</span>
+                  <span className="text-sm">{t(`profile.role.${role.toLowerCase()}`)}</span>
                 </label>
               ))}
             </div>
@@ -255,7 +257,7 @@ const ProfileModal = ({ user, token, onClose, onUpdate }) => {
 
           <div>
             <Label className="text-sm font-medium mb-2 block">
-              Music Styles (Optional) <span className="text-gray-500 font-normal">(Select your specialties)</span>
+              {t("profile.musicStyles")} <span className="text-gray-500 font-normal">{t("profile.selectSpecialties")}</span>
             </Label>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
               {["Pop", "Rock", "Hip-Hop", "R&B", "Country", "Jazz", "Electronic", "Latin", "Folk", "Classical", "Metal", "Indie"].map(style => (
@@ -274,7 +276,7 @@ const ProfileModal = ({ user, token, onClose, onUpdate }) => {
                     onChange={() => handleMusicStyleToggle(style)}
                     className="w-3 h-3 accent-[#7c5cff]"
                   />
-                  <span className="text-xs">{style}</span>
+                  <span className="text-xs">{t(`profile.style.${style.toLowerCase()}`)}</span>
                 </label>
               ))}
             </div>
@@ -282,19 +284,19 @@ const ProfileModal = ({ user, token, onClose, onUpdate }) => {
 
           <div>
             <Label htmlFor="bio" className="text-sm font-medium mb-2 block">
-              Bio (Optional)
+              {t("profile.bio")}
             </Label>
             <Textarea
               id="bio"
               name="bio"
               value={formData.bio}
               onChange={handleChange}
-              placeholder="Example: Award-winning songwriter specializing in Pop and R&B. 10+ years experience. Collaborated with artists like John Legend, Ariana Grande, and The Weeknd. Currently working on sync licensing for TV/Film. Open to co-writing sessions and remote collaborations."
+              placeholder={t("profile.bioPlaceholder")}
               className="bg-[#121212] border-white/10 text-white min-h-[120px]"
               data-testid="profile-bio-input"
             />
             <p className="text-xs text-gray-400 mt-1">
-              💡 <strong>Tip:</strong> Mention your experience, artists you've worked with, and what you're looking for
+              💡 <strong>{t("profile.tipLabel")}</strong> {t("profile.tipText")}
             </p>
           </div>
 
@@ -307,7 +309,7 @@ const ProfileModal = ({ user, token, onClose, onUpdate }) => {
                 className="border-white/20 bg-transparent hover:bg-white/5"
                 data-testid="profile-cancel-btn"
               >
-                Cancel
+                {t("profile.cancel")}
               </Button>
             )}
             <Button
@@ -316,7 +318,7 @@ const ProfileModal = ({ user, token, onClose, onUpdate }) => {
               className="bg-[#7c5cff] text-white hover:bg-[#6a4ef0] font-bold"
               data-testid="profile-save-btn"
             >
-              {loading ? "Saving..." : isRequired ? "Complete Profile" : "Save Changes"}
+              {loading ? t("profile.saving") : isRequired ? t("profile.completeProfile") : t("profile.saveChanges")}
             </Button>
           </div>
         </form>

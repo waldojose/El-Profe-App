@@ -4,6 +4,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { Eye, EyeOff, Music } from "lucide-react";
 import { motion } from "framer-motion";
+import { useI18n } from "../i18n/I18nProvider";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -11,6 +12,7 @@ const API = `${BACKEND_URL}/api`;
 const Auth = ({ setToken, setUser }) => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [mode, setMode] = useState(searchParams.get("mode") === "signup" ? "signup" : "login");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -36,10 +38,10 @@ const Auth = ({ setToken, setUser }) => {
       
       setToken(response.data.token);
       setUser(response.data.user);
-      toast.success(mode === "login" ? "Welcome back!" : "Account created!");
+      toast.success(mode === "login" ? t("auth.welcomeBackToast") : t("auth.accountCreatedToast"));
       navigate("/dashboard");
     } catch (error) {
-      toast.error(error.response?.data?.detail || "Authentication failed");
+      toast.error(error.response?.data?.detail || t("auth.authFailed"));
     } finally {
       setLoading(false);
     }
@@ -69,10 +71,10 @@ const Auth = ({ setToken, setUser }) => {
         <div className="text-center mb-8">
           <img src={logoUrl} alt="Professor App" className="h-16 w-auto mx-auto mb-4" />
           <h1 className="text-heading text-3xl font-bold mb-2">
-            {mode === "login" ? "Welcome Back" : "Join Professor App"}
+            {mode === "login" ? t("auth.welcomeBack") : t("auth.joinTitle")}
           </h1>
           <p className="text-gray-400">
-            {mode === "login" ? "Continue your creative journey" : "Start collaborating professionally"}
+            {mode === "login" ? t("auth.loginSubtitle") : t("auth.signupSubtitle")}
           </p>
         </div>
 
@@ -81,7 +83,7 @@ const Auth = ({ setToken, setUser }) => {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="email" className="block text-sm font-medium mb-2">
-                Email
+                {t("auth.emailLabel")}
               </label>
               <input
                 type="email"
@@ -91,7 +93,7 @@ const Auth = ({ setToken, setUser }) => {
                 onChange={handleChange}
                 required
                 className="w-full px-4 py-3 bg-[#121212] border border-white/10 rounded-sm focus:border-[#7c5cff] focus:outline-none transition-colors"
-                placeholder="your@email.com"
+                placeholder={t("auth.emailPlaceholder")}
                 data-testid="auth-email-input"
               />
             </div>
@@ -99,7 +101,7 @@ const Auth = ({ setToken, setUser }) => {
             {mode === "signup" && (
               <div>
                 <label htmlFor="artist_name" className="block text-sm font-medium mb-2">
-                  Artist Name (Optional)
+                  {t("auth.artistNameLabel")}
                 </label>
                 <input
                   type="text"
@@ -108,7 +110,7 @@ const Auth = ({ setToken, setUser }) => {
                   value={formData.artist_name}
                   onChange={handleChange}
                   className="w-full px-4 py-3 bg-[#121212] border border-white/10 rounded-sm focus:border-[#7c5cff] focus:outline-none transition-colors"
-                  placeholder="Your stage name"
+                  placeholder={t("auth.artistNamePlaceholder")}
                   data-testid="auth-artist-name-input"
                 />
               </div>
@@ -116,7 +118,7 @@ const Auth = ({ setToken, setUser }) => {
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium mb-2">
-                Password
+                {t("auth.passwordLabel")}
               </label>
               <div className="relative">
                 <input
@@ -147,7 +149,7 @@ const Auth = ({ setToken, setUser }) => {
               className="w-full btn-primary py-3 disabled:opacity-50 disabled:cursor-not-allowed"
               data-testid="auth-submit-btn"
             >
-              {loading ? "Loading..." : mode === "login" ? "Sign In" : "Create Account"}
+              {loading ? t("auth.loading") : mode === "login" ? t("auth.signIn") : t("auth.createAccount")}
             </button>
           </form>
 
@@ -160,7 +162,7 @@ const Auth = ({ setToken, setUser }) => {
               className="text-gray-400 hover:text-[#7c5cff] transition-colors"
               data-testid="auth-toggle-mode"
             >
-              {mode === "login" ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+              {mode === "login" ? t("auth.toggleToSignup") : t("auth.toggleToLogin")}
             </button>
           </div>
         </div>
@@ -172,7 +174,7 @@ const Auth = ({ setToken, setUser }) => {
             className="text-gray-400 hover:text-white transition-colors text-sm"
             data-testid="auth-back-home"
           >
-            ← Back to Home
+            ← {t("auth.backToHome")}
           </button>
         </div>
       </motion.div>

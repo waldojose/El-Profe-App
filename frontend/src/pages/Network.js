@@ -10,11 +10,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import LogoBadge from "../components/LogoBadge";
+import { useI18n } from "../i18n/I18nProvider";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 const Network = ({ token, user }) => {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,7 +43,7 @@ const Network = ({ token, user }) => {
       });
       setUsers(response.data);
     } catch (error) {
-      toast.error("Failed to load users");
+      toast.error(t("net.toast.loadUsersFailed"));
     } finally {
       setLoading(false);
     }
@@ -53,7 +55,7 @@ const Network = ({ token, user }) => {
 
   const handleSendMessage = async () => {
     if (!message.trim()) {
-      toast.error("Please enter a message");
+      toast.error(t("net.toast.enterMessage"));
       return;
     }
 
@@ -67,19 +69,19 @@ const Network = ({ token, user }) => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      toast.success("Message sent!");
+      toast.success(t("net.toast.messageSent"));
       setShowMessageModal(false);
       setMessage("");
       setSelectedUser(null);
     } catch (error) {
-      toast.error("Failed to send message");
+      toast.error(t("net.toast.sendMessageFailed"));
     }
   };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-[#050505] flex items-center justify-center">
-        <div className="text-white text-xl">Loading network...</div>
+        <div className="text-white text-xl">{t("net.loading")}</div>
       </div>
     );
   }
@@ -101,8 +103,8 @@ const Network = ({ token, user }) => {
             </button>
             <img src={logoUrl} alt="Professor App" className="h-10 w-auto" />
             <div>
-              <h1 className="font-bold text-lg">Network</h1>
-              <p className="text-xs text-gray-500">Discover & connect with creators</p>
+              <h1 className="font-bold text-lg">{t("net.title")}</h1>
+              <p className="text-xs text-gray-500">{t("net.subtitle")}</p>
             </div>
           </div>
 
@@ -112,7 +114,7 @@ const Network = ({ token, user }) => {
             data-testid="messages-btn"
           >
             <MessageCircle size={16} />
-            Messages
+            {t("net.messagesBtn")}
           </button>
         </div>
       </header>
@@ -128,14 +130,14 @@ const Network = ({ token, user }) => {
           >
             <div className="flex items-center gap-2 mb-6">
               <Users className="text-[#7c5cff]" size={24} />
-              <h2 className="text-heading text-2xl font-bold">Discover Creators</h2>
+              <h2 className="text-heading text-2xl font-bold">{t("net.discoverCreators")}</h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="md:col-span-2">
                 <div className="flex gap-2">
                   <Input
-                    placeholder="Search by name..."
+                    placeholder={t("net.searchPlaceholder")}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
@@ -159,18 +161,18 @@ const Network = ({ token, user }) => {
                   className="w-full px-4 py-2 bg-[#121212] border border-white/10 rounded-md text-white"
                   data-testid="role-filter"
                 >
-                  <option value="">All Roles</option>
-                  <option value="writer">Writers</option>
-                  <option value="producer">Producers</option>
-                  <option value="composer">Composers</option>
-                  <option value="manager">Managers</option>
-                  <option value="publisher">Publishers</option>
+                  <option value="">{t("net.role.all")}</option>
+                  <option value="writer">{t("net.role.writers")}</option>
+                  <option value="producer">{t("net.role.producers")}</option>
+                  <option value="composer">{t("net.role.composers")}</option>
+                  <option value="manager">{t("net.role.managers")}</option>
+                  <option value="publisher">{t("net.role.publishers")}</option>
                 </select>
               </div>
             </div>
 
             <p className="text-sm text-gray-400 mt-4">
-              {users.length} creator{users.length !== 1 ? 's' : ''} found
+              {users.length} {users.length !== 1 ? t("net.creatorsFound") : t("net.creatorFound")}
             </p>
           </motion.div>
         </div>
@@ -179,8 +181,8 @@ const Network = ({ token, user }) => {
         {users.length === 0 ? (
           <div className="backdrop-studio p-12 rounded-sm text-center">
             <Users size={64} className="mx-auto mb-4 text-gray-600" />
-            <h3 className="text-xl font-bold mb-2">No creators found</h3>
-            <p className="text-gray-400">Try adjusting your filters</p>
+            <h3 className="text-xl font-bold mb-2">{t("net.empty.title")}</h3>
+            <p className="text-gray-400">{t("net.empty.subtitle")}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -253,7 +255,7 @@ const Network = ({ token, user }) => {
                   data-testid={`message-user-btn-${creator.id}`}
                 >
                   <MessageCircle size={16} />
-                  Send Message
+                  {t("net.sendMessage")}
                 </button>
               </motion.div>
             ))}
@@ -266,19 +268,19 @@ const Network = ({ token, user }) => {
         <DialogContent className="bg-[#0A0A0A] border border-white/10 text-white" data-testid="message-modal">
           <DialogHeader>
             <DialogTitle className="text-heading text-2xl">
-              Message {selectedUser?.artist_name}
+              {t("net.modal.title")} {selectedUser?.artist_name}
             </DialogTitle>
           </DialogHeader>
           <div className="py-4">
             <Textarea
-              placeholder="Hi! I'd love to collaborate on a song..."
+              placeholder={t("net.modal.placeholder")}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               className="bg-[#121212] border-white/10 text-white min-h-[150px]"
               data-testid="message-textarea"
             />
             <p className="text-xs text-gray-400 mt-2">
-              Start a conversation and invite them to collaborate!
+              {t("net.modal.hint")}
             </p>
           </div>
           <DialogFooter>
@@ -288,7 +290,7 @@ const Network = ({ token, user }) => {
               className="border-white/20 bg-transparent hover:bg-white/5"
               data-testid="cancel-message-btn"
             >
-              Cancel
+              {t("net.modal.cancel")}
             </Button>
             <Button
               onClick={handleSendMessage}
@@ -296,7 +298,7 @@ const Network = ({ token, user }) => {
               data-testid="send-message-btn"
             >
               <MessageCircle size={16} className="mr-2" />
-              Send Message
+              {t("net.sendMessage")}
             </Button>
           </DialogFooter>
         </DialogContent>

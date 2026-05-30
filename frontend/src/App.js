@@ -9,6 +9,8 @@ import Editor from "./pages/Editor";
 import Network from "./pages/Network";
 import Messages from "./pages/Messages";
 import SplashScreen from "./components/SplashScreen";
+import LanguageToggle from "./components/LanguageToggle";
+import { I18nProvider } from "./i18n/I18nProvider";
 import { Toaster } from "@/components/ui/sonner";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -33,13 +35,16 @@ function App() {
   };
 
   return (
+    <I18nProvider defaultLang="en">
     <div className="App min-h-screen">
       <AnimatePresence mode="wait">
         {showSplash && (
           <SplashScreen onComplete={() => setShowSplash(false)} />
         )}
       </AnimatePresence>
-      
+
+      <LanguageToggle />
+
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Landing />} />
@@ -64,6 +69,7 @@ function App() {
       </BrowserRouter>
       <Toaster />
     </div>
+    </I18nProvider>
   );
 }
 

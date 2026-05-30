@@ -7,11 +7,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useI18n } from "../i18n/I18nProvider";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 const SplitPanel = ({ songId, token, user, song }) => {
+  const { t } = useI18n();
   const [splits, setSplits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showNewSplitModal, setShowNewSplitModal] = useState(false);
@@ -40,7 +42,7 @@ const SplitPanel = ({ songId, token, user, song }) => {
   const handleCreateSplit = async () => {
     const total = newSplits.reduce((sum, s) => sum + parseFloat(s.percentage || 0), 0);
     if (Math.abs(total - 100) > 0.01) {
-      toast.error("Splits must total 100%");
+      toast.error(t("split.error.total100"));
       return;
     }
 
@@ -54,18 +56,18 @@ const SplitPanel = ({ songId, token, user, song }) => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      toast.success("Split proposal created!");
+      toast.success(t("split.toast.created"));
       setShowNewSplitModal(false);
       setNewSplits([{ user_id: user?.id, percentage: 100 }]);
       fetchSplits();
     } catch (error) {
-      toast.error(error.response?.data?.detail || "Failed to create split");
+      toast.error(error.response?.data?.detail || t("split.error.create"));
     }
   };
 
   const handleSign = async () => {
     if (!signatureName.trim()) {
-      toast.error("Please enter your name");
+      toast.error(t("split.error.enterName"));
       return;
     }
 
@@ -79,11 +81,11 @@ const SplitPanel = ({ songId, token, user, song }) => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      toast.success("Signature recorded!");
+      toast.success(t("split.toast.signed"));
       setShowSignModal(false);
       setSelectedProposal(null);
     } catch (error) {
-      toast.error(error.response?.data?.detail || "Failed to sign");
+      toast.error(error.response?.data?.detail || t("split.error.sign"));
     }
   };
 
@@ -98,9 +100,9 @@ const SplitPanel = ({ songId, token, user, song }) => {
       link.download = response.data.filename;
       link.click();
       
-      toast.success("PDF exported!");
+      toast.success(t("split.toast.pdfExported"));
     } catch (error) {
-      toast.error(error.response?.data?.detail || "Failed to export PDF");
+      toast.error(error.response?.data?.detail || t("split.error.export"));
     }
   };
 
@@ -109,12 +111,12 @@ const SplitPanel = ({ songId, token, user, song }) => {
       <div className="backdrop-studio p-6 rounded-sm" data-testid="split-panel-locked">
         <div className="flex items-center gap-2 mb-4">
           <Crown className="text-[#7c5cff]" size={20} />
-          <h3 className="font-bold text-lg">Split Management</h3>
+          <h3 className="font-bold text-lg">{t("split.locked.title")}</h3>
         </div>
         <div className="p-6 bg-[#121212] rounded-sm text-center">
           <Crown size={48} className="mx-auto mb-4 text-gray-600" />
-          <p className="text-gray-400 mb-4">Pro plan required for split management, signatures, and legal exports</p>
-          <p className="text-xs text-gray-500">Upgrade to unlock this feature</p>
+          <p className="text-gray-400 mb-4">{t("split.locked.message")}</p>
+          <p className="text-xs text-gray-500">{t("split.locked.upgrade")}</p>
         </div>
       </div>
     );
@@ -125,7 +127,7 @@ const SplitPanel = ({ songId, token, user, song }) => {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
           <FileText className="text-[#7c5cff]" size={20} />
-          <h3 className="font-bold text-lg">Splits</h3>
+          <h3 className="font-bold text-lg">{t("split.heading")}</h3>
         </div>
         <button
           onClick={() => setShowNewSplitModal(true)}
@@ -138,7 +140,7 @@ const SplitPanel = ({ songId, token, user, song }) => {
 
       <div className="space-y-4">
         {splits.length === 0 ? (
-          <p className="text-gray-400 text-sm">No split proposals yet</p>
+          <p className="text-gray-400 text-sm">{t("split.empty")}</p>
         ) : (
           splits.map((split, index) => (
             <motion.div
@@ -151,7 +153,7 @@ const SplitPanel = ({ songId, token, user, song }) => {
             >
               <div className="flex items-center justify-between mb-3">
                 <div>
-                  <p className="font-semibold text-sm">Version {split.version}</p>
+                  <p className="font-semibold text-sm">{t("split.version")} {split.version}</p>
                   <p className="text-xs text-gray-500">{split.status}</p>
                 </div>
                 {split.status === 'approved' && (
@@ -162,7 +164,7 @@ const SplitPanel = ({ songId, token, user, song }) => {
               <div className="space-y-2 mb-3">
                 {split.splits.map((s, i) => (
                   <div key={i} className="flex justify-between text-xs">
-                    <span className="text-gray-400">Contributor {i + 1}</span>
+                    <span className="text-gray-400">{t("split.contributor")} {i + 1}</span>
                     <span className="font-bold text-[#7c5cff] text-mono">{s.percentage}%</span>
                   </div>
                 ))}
@@ -177,7 +179,7 @@ const SplitPanel = ({ songId, token, user, song }) => {
                   className="flex-1 px-3 py-2 bg-[#7c5cff] text-white text-xs font-bold rounded-sm hover:bg-[#6a4ef0] transition-colors"
                   data-testid={`sign-split-btn-${index}`}
                 >
-                  Sign
+                  {t("split.sign")}
                 </button>
                 <button
                   onClick={() => handleExportPDF(split.id)}
@@ -196,13 +198,13 @@ const SplitPanel = ({ songId, token, user, song }) => {
       <Dialog open={showNewSplitModal} onOpenChange={setShowNewSplitModal}>
         <DialogContent className="bg-[#0A0A0A] border border-white/10 text-white" data-testid="new-split-modal">
           <DialogHeader>
-            <DialogTitle className="text-heading text-2xl">Create Split Proposal</DialogTitle>
+            <DialogTitle className="text-heading text-2xl">{t("split.modal.createTitle")}</DialogTitle>
           </DialogHeader>
           <div className="py-4 space-y-4">
             {newSplits.map((split, index) => (
               <div key={index} className="flex gap-3 items-end">
                 <div className="flex-1">
-                  <Label className="text-sm mb-2 block">Contributor {index + 1}</Label>
+                  <Label className="text-sm mb-2 block">{t("split.contributor")} {index + 1}</Label>
                   <Input
                     type="number"
                     value={split.percentage}
@@ -211,7 +213,7 @@ const SplitPanel = ({ songId, token, user, song }) => {
                       updated[index].percentage = parseFloat(e.target.value);
                       setNewSplits(updated);
                     }}
-                    placeholder="Percentage"
+                    placeholder={t("split.percentage.placeholder")}
                     className="bg-[#121212] border-white/10 text-white"
                     data-testid={`split-percentage-input-${index}`}
                   />
@@ -219,7 +221,7 @@ const SplitPanel = ({ songId, token, user, song }) => {
               </div>
             ))}
             <p className="text-xs text-gray-400">
-              Total: {newSplits.reduce((sum, s) => sum + parseFloat(s.percentage || 0), 0).toFixed(1)}%
+              {t("split.total")} {newSplits.reduce((sum, s) => sum + parseFloat(s.percentage || 0), 0).toFixed(1)}%
             </p>
           </div>
           <DialogFooter>
@@ -229,14 +231,14 @@ const SplitPanel = ({ songId, token, user, song }) => {
               className="border-white/20 bg-transparent hover:bg-white/5"
               data-testid="cancel-split-btn"
             >
-              Cancel
+              {t("split.cancel")}
             </Button>
             <Button
               onClick={handleCreateSplit}
               className="bg-[#7c5cff] text-white hover:bg-[#6a4ef0] font-bold"
               data-testid="save-split-btn"
             >
-              Create Proposal
+              {t("split.createProposal")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -246,19 +248,19 @@ const SplitPanel = ({ songId, token, user, song }) => {
       <Dialog open={showSignModal} onOpenChange={setShowSignModal}>
         <DialogContent className="bg-[#0A0A0A] border border-white/10 text-white" data-testid="sign-modal">
           <DialogHeader>
-            <DialogTitle className="text-heading text-2xl">Digital Signature</DialogTitle>
+            <DialogTitle className="text-heading text-2xl">{t("split.modal.signTitle")}</DialogTitle>
           </DialogHeader>
           <div className="py-4">
-            <Label className="text-sm mb-2 block">Type your legal name to sign</Label>
+            <Label className="text-sm mb-2 block">{t("split.sign.label")}</Label>
             <Input
               value={signatureName}
               onChange={(e) => setSignatureName(e.target.value)}
-              placeholder="Your legal name"
+              placeholder={t("split.sign.placeholder")}
               className="bg-[#121212] border-white/10 text-white"
               data-testid="signature-name-input"
             />
             <p className="text-xs text-gray-400 mt-2">
-              By signing, you agree to the split percentages in this proposal.
+              {t("split.sign.agreement")}
             </p>
           </div>
           <DialogFooter>
@@ -268,14 +270,14 @@ const SplitPanel = ({ songId, token, user, song }) => {
               className="border-white/20 bg-transparent hover:bg-white/5"
               data-testid="cancel-sign-btn"
             >
-              Cancel
+              {t("split.cancel")}
             </Button>
             <Button
               onClick={handleSign}
               className="bg-[#7c5cff] text-white hover:bg-[#6a4ef0] font-bold"
               data-testid="confirm-sign-btn"
             >
-              Sign Document
+              {t("split.signDocument")}
             </Button>
           </DialogFooter>
         </DialogContent>

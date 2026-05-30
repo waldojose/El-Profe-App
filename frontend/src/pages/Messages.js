@@ -8,11 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import LogoBadge from "../components/LogoBadge";
+import { useI18n } from "../i18n/I18nProvider";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 const Messages = ({ token, user }) => {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const [conversations, setConversations] = useState([]);
   const [selectedConversation, setSelectedConversation] = useState(null);
@@ -38,7 +40,7 @@ const Messages = ({ token, user }) => {
       });
       setConversations(response.data);
     } catch (error) {
-      toast.error("Failed to load conversations");
+      toast.error(t("msg.toast.loadConversationsFailed"));
     } finally {
       setLoading(false);
     }
@@ -51,7 +53,7 @@ const Messages = ({ token, user }) => {
       });
       setMessages(response.data);
     } catch (error) {
-      toast.error("Failed to load messages");
+      toast.error(t("msg.toast.loadMessagesFailed"));
     }
   };
 
@@ -71,14 +73,14 @@ const Messages = ({ token, user }) => {
       setNewMessage("");
       fetchMessages(selectedConversation.partner_id);
     } catch (error) {
-      toast.error("Failed to send message");
+      toast.error(t("msg.toast.sendMessageFailed"));
     }
   };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-[#050505] flex items-center justify-center">
-        <div className="text-white text-xl">Loading messages...</div>
+        <div className="text-white text-xl">{t("msg.loading")}</div>
       </div>
     );
   }
@@ -100,8 +102,8 @@ const Messages = ({ token, user }) => {
             </button>
             <img src={logoUrl} alt="Professor App" className="h-10 w-auto" />
             <div>
-              <h1 className="font-bold text-lg">Messages</h1>
-              <p className="text-xs text-gray-500">Your conversations</p>
+              <h1 className="font-bold text-lg">{t("msg.title")}</h1>
+              <p className="text-xs text-gray-500">{t("msg.subtitle")}</p>
             </div>
           </div>
         </div>
@@ -114,18 +116,18 @@ const Messages = ({ token, user }) => {
           <div className="col-span-4 backdrop-studio rounded-sm p-4 overflow-y-auto">
             <h2 className="font-bold mb-4 flex items-center gap-2">
               <MessageCircle className="text-[#7c5cff]" size={20} />
-              Conversations
+              {t("msg.conversations")}
             </h2>
 
             {conversations.length === 0 ? (
               <div className="text-center py-12">
                 <MessageCircle size={48} className="mx-auto mb-4 text-gray-600" />
-                <p className="text-gray-400 text-sm">No messages yet</p>
+                <p className="text-gray-400 text-sm">{t("msg.noMessages")}</p>
                 <button
                   onClick={() => navigate("/network")}
                   className="btn-primary mt-4 text-sm"
                 >
-                  Discover Creators
+                  {t("msg.discoverCreators")}
                 </button>
               </div>
             ) : (
@@ -226,7 +228,7 @@ const Messages = ({ token, user }) => {
                 <div className="p-4 border-t border-white/10">
                   <div className="flex gap-2">
                     <Textarea
-                      placeholder="Type your message..."
+                      placeholder={t("msg.inputPlaceholder")}
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
                       onKeyPress={(e) => {
@@ -252,7 +254,7 @@ const Messages = ({ token, user }) => {
               <div className="flex-1 flex items-center justify-center">
                 <div className="text-center">
                   <MessageCircle size={64} className="mx-auto mb-4 text-gray-600" />
-                  <p className="text-gray-400">Select a conversation to start messaging</p>
+                  <p className="text-gray-400">{t("msg.selectConversation")}</p>
                 </div>
               </div>
             )}

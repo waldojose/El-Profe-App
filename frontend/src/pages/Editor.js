@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useI18n } from "../i18n/I18nProvider";
 import ContributionPanel from "../components/ContributionPanel";
 import SplitPanel from "../components/SplitPanel";
 import SynonymsPanel from "../components/SynonymsPanel";
@@ -21,6 +22,7 @@ const API = `${BACKEND_URL}/api`;
 const WS_URL = BACKEND_URL.replace('https://', 'wss://').replace('http://', 'ws://');
 
 const Editor = ({ token, user }) => {
+  const { t } = useI18n();
   const { songId } = useParams();
   const navigate = useNavigate();
   const [song, setSong] = useState(null);
@@ -54,7 +56,7 @@ const Editor = ({ token, user }) => {
       setContent(response.data.content || "");
       contentRef.current = response.data.content || "";
     } catch (error) {
-      toast.error("Failed to load song");
+      toast.error(t("editor.toastLoadFailed"));
       navigate("/dashboard");
     } finally {
       setLoading(false);
@@ -141,9 +143,9 @@ const Editor = ({ token, user }) => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      toast.success("Song saved!");
+      toast.success(t("editor.toastSaved"));
     } catch (error) {
-      toast.error("Failed to save");
+      toast.error(t("editor.toastSaveFailed"));
     }
   };
 
@@ -157,7 +159,7 @@ const Editor = ({ token, user }) => {
 
   const handleAddCollaborator = async () => {
     if (!collaboratorEmail.trim()) {
-      toast.error("Please enter an email");
+      toast.error(t("editor.toastEnterEmail"));
       return;
     }
 
@@ -168,19 +170,19 @@ const Editor = ({ token, user }) => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      toast.success("Collaborator added!");
+      toast.success(t("editor.toastCollaboratorAdded"));
       setShowAddCollaborator(false);
       setCollaboratorEmail("");
       fetchSong(); // Refresh song data
     } catch (error) {
-      toast.error(error.response?.data?.detail || "Failed to add collaborator");
+      toast.error(error.response?.data?.detail || t("editor.toastAddCollaboratorFailed"));
     }
   };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-[#050505] flex items-center justify-center">
-        <div className="text-white text-xl">Loading...</div>
+        <div className="text-white text-xl">{t("editor.loading")}</div>
       </div>
     );
   }
@@ -203,7 +205,7 @@ const Editor = ({ token, user }) => {
             <img src={logoUrl} alt="Professor App" className="h-8 w-auto" />
             <div>
               <h1 className="font-bold text-lg">{song?.title}</h1>
-              <p className="text-xs text-gray-500">{song?.collaborators?.length || 1} collaborator(s)</p>
+              <p className="text-xs text-gray-500">{song?.collaborators?.length || 1} {t("editor.collaboratorsCount")}</p>
             </div>
           </div>
           
@@ -214,7 +216,7 @@ const Editor = ({ token, user }) => {
               data-testid="save-song-btn"
             >
               <Save size={16} />
-              Save
+              {t("editor.save")}
             </button>
           </div>
         </div>
@@ -227,16 +229,16 @@ const Editor = ({ token, user }) => {
           <div className="backdrop-studio p-4 rounded-sm">
             <h3 className="text-sm font-bold mb-3 flex items-center gap-2">
               <Users size={16} className="text-[#7c5cff]" />
-              Collaborators
+              {t("editor.collaborators")}
             </h3>
             <div className="space-y-2 text-xs text-gray-400">
-              <p className="mb-3">Total: {song?.collaborators?.length || 1}</p>
+              <p className="mb-3">{t("editor.total")}: {song?.collaborators?.length || 1}</p>
               <button
                 onClick={() => setShowAddCollaborator(true)}
                 className="w-full px-3 py-2 bg-[#7c5cff] text-white text-xs font-bold rounded-sm hover:bg-[#6a4ef0] transition-colors"
                 data-testid="add-collaborator-btn"
               >
-                + Add Writer
+                + {t("editor.addWriter")}
               </button>
             </div>
           </div>
@@ -246,8 +248,8 @@ const Editor = ({ token, user }) => {
         <div className="col-span-7 overflow-y-auto scroll-fade">
           <div className="backdrop-studio p-6 rounded-sm h-full">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-heading text-2xl font-bold">Lyrics</h2>
-              <span className="text-xs text-gray-500 text-mono">{content.length} characters</span>
+              <h2 className="text-heading text-2xl font-bold">{t("editor.lyrics")}</h2>
+              <span className="text-xs text-gray-500 text-mono">{content.length} {t("editor.characters")}</span>
             </div>
             
             <ContentEditable
@@ -262,7 +264,7 @@ const Editor = ({ token, user }) => {
             {song?.is_locked && (
               <div className="mt-4 text-sm text-[#FF3B30] flex items-center gap-2">
                 <FileText size={16} />
-                This song is locked
+                {t("editor.songLocked")}
               </div>
             )}
           </div>
@@ -273,7 +275,7 @@ const Editor = ({ token, user }) => {
           <Tabs defaultValue="synonyms" className="w-full">
             <TabsList className="grid w-full grid-cols-3 bg-[#0A0A0A] border border-white/10 mb-4">
               <TabsTrigger value="synonyms" data-testid="tab-synonyms">
-                Tools
+                {t("editor.tabTools")}
               </TabsTrigger>
               <TabsTrigger value="contributions" data-testid="tab-contributions">
                 <BarChart3 size={16} />
@@ -302,23 +304,23 @@ const Editor = ({ token, user }) => {
       <Dialog open={showAddCollaborator} onOpenChange={setShowAddCollaborator}>
         <DialogContent className="bg-[#0A0A0A] border border-white/10 text-white" data-testid="add-collaborator-modal">
           <DialogHeader>
-            <DialogTitle className="text-heading text-2xl">Add Collaborator</DialogTitle>
+            <DialogTitle className="text-heading text-2xl">{t("editor.addCollaborator")}</DialogTitle>
           </DialogHeader>
           <div className="py-4">
             <Label htmlFor="collaborator-email" className="text-sm font-medium mb-2 block">
-              Email Address
+              {t("editor.emailAddress")}
             </Label>
             <Input
               id="collaborator-email"
               type="email"
               value={collaboratorEmail}
               onChange={(e) => setCollaboratorEmail(e.target.value)}
-              placeholder="writer@example.com"
+              placeholder={t("editor.emailPlaceholder")}
               className="bg-[#121212] border-white/10 text-white"
               data-testid="collaborator-email-input"
             />
             <p className="text-xs text-gray-400 mt-2">
-              Enter the email of a registered user to add them as a collaborator.
+              {t("editor.addCollaboratorHelp")}
             </p>
           </div>
           <DialogFooter>
@@ -328,14 +330,14 @@ const Editor = ({ token, user }) => {
               className="border-white/20 bg-transparent hover:bg-white/5"
               data-testid="cancel-add-collaborator-btn"
             >
-              Cancel
+              {t("editor.cancel")}
             </Button>
             <Button
               onClick={handleAddCollaborator}
               className="bg-[#7c5cff] text-white hover:bg-[#6a4ef0] font-bold"
               data-testid="confirm-add-collaborator-btn"
             >
-              Add Collaborator
+              {t("editor.addCollaborator")}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -10,12 +10,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useI18n } from "../i18n/I18nProvider";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 const Dashboard = ({ token, logout, user, setUser }) => {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [songs, setSongs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -48,7 +50,7 @@ const Dashboard = ({ token, logout, user, setUser }) => {
       
       setSongs(songsRes.data);
     } catch (error) {
-      toast.error("Failed to load data");
+      toast.error(t("dash.loadFailed"));
     } finally {
       setLoading(false);
     }
@@ -56,7 +58,7 @@ const Dashboard = ({ token, logout, user, setUser }) => {
 
   const handleCreateSong = async () => {
     if (!newSongTitle.trim()) {
-      toast.error("Please enter a song title");
+      toast.error(t("dash.enterSongTitle"));
       return;
     }
 
@@ -70,9 +72,9 @@ const Dashboard = ({ token, logout, user, setUser }) => {
       setSongs([response.data, ...songs]);
       setShowNewSongModal(false);
       setNewSongTitle("");
-      toast.success("Song created!");
+      toast.success(t("dash.songCreated"));
     } catch (error) {
-      toast.error(error.response?.data?.detail || "Failed to create song");
+      toast.error(error.response?.data?.detail || t("dash.createSongFailed"));
     }
   };
 
@@ -84,17 +86,17 @@ const Dashboard = ({ token, logout, user, setUser }) => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      toast.success("Upgraded to Pro! (Mock payment)");
+      toast.success(t("dash.upgradedToPro"));
       setCurrentUser({ ...currentUser, is_pro: true });
     } catch (error) {
-      toast.error("Upgrade failed");
+      toast.error(t("dash.upgradeFailed"));
     }
   };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-[#050505] flex items-center justify-center">
-        <div className="text-white text-xl">Loading...</div>
+        <div className="text-white text-xl">{t("dash.loading")}</div>
       </div>
     );
   }
@@ -117,7 +119,7 @@ const Dashboard = ({ token, logout, user, setUser }) => {
               data-testid="network-btn"
             >
               <Users size={16} />
-              Network
+              {t("dash.network")}
             </button>
             {!currentUser?.is_pro && (
               <button
@@ -126,7 +128,7 @@ const Dashboard = ({ token, logout, user, setUser }) => {
                 data-testid="upgrade-pro-btn"
               >
                 <Crown size={16} />
-                Upgrade to Pro
+                {t("dash.upgradeToPro")}
               </button>
             )}
             {currentUser?.is_pro && (
@@ -163,10 +165,10 @@ const Dashboard = ({ token, logout, user, setUser }) => {
             transition={{ duration: 0.6 }}
           >
             <h1 className="text-heading text-4xl sm:text-5xl font-bold mb-4">
-              Your <span className="text-[#7c5cff]">Songs</span>
+              {t("dash.your")} <span className="text-[#7c5cff]">{t("dash.songs")}</span>
             </h1>
             <p className="text-gray-400 text-lg">
-              {currentUser?.artist_name ? `Welcome back, ${currentUser.artist_name}` : "Welcome back"}
+              {currentUser?.artist_name ? `${t("dash.welcome")}, ${currentUser.artist_name}` : t("dash.welcomeBack")}
             </p>
           </motion.div>
         </div>
@@ -179,7 +181,7 @@ const Dashboard = ({ token, logout, user, setUser }) => {
             data-testid="create-song-btn"
           >
             <Plus size={20} />
-            New Song
+            {t("dash.newSong")}
           </button>
         </div>
 
@@ -192,13 +194,13 @@ const Dashboard = ({ token, logout, user, setUser }) => {
             data-testid="empty-songs-state"
           >
             <Music size={64} className="mx-auto mb-4 text-gray-600" />
-            <h3 className="text-xl font-bold mb-2">No songs yet</h3>
-            <p className="text-gray-400 mb-6">Create your first song to start collaborating</p>
+            <h3 className="text-xl font-bold mb-2">{t("dash.noSongsYet")}</h3>
+            <p className="text-gray-400 mb-6">{t("dash.noSongsSubtitle")}</p>
             <button
               onClick={() => setShowNewSongModal(true)}
               className="btn-primary"
             >
-              Create Your First Song
+              {t("dash.createFirstSong")}
             </button>
           </motion.div>
         ) : (
@@ -255,15 +257,15 @@ const Dashboard = ({ token, logout, user, setUser }) => {
               <div>
                 <h3 className="font-bold mb-2 flex items-center gap-2">
                   <Crown className="text-[#7c5cff]" size={20} />
-                  Free Plan Limit Reached
+                  {t("dash.planLimitTitle")}
                 </h3>
-                <p className="text-gray-400 text-sm">Upgrade to Pro for unlimited songs and legal features</p>
+                <p className="text-gray-400 text-sm">{t("dash.planLimitSubtitle")}</p>
               </div>
               <button
                 onClick={handleUpgradeToPro}
                 className="btn-primary"
               >
-                Upgrade Now
+                {t("dash.upgradeNow")}
               </button>
             </div>
           </motion.div>
@@ -284,7 +286,7 @@ const Dashboard = ({ token, logout, user, setUser }) => {
             setCurrentUser(updatedUser);
             setUser(updatedUser);
             setShowProfileModal(false);
-            toast.success("Profile updated!");
+            toast.success(t("dash.profileUpdated"));
           }}
         />
       )}
@@ -293,17 +295,17 @@ const Dashboard = ({ token, logout, user, setUser }) => {
       <Dialog open={showNewSongModal} onOpenChange={setShowNewSongModal}>
         <DialogContent className="bg-[#0A0A0A] border border-white/10 text-white" data-testid="new-song-modal">
           <DialogHeader>
-            <DialogTitle className="text-heading text-2xl">Create New Song</DialogTitle>
+            <DialogTitle className="text-heading text-2xl">{t("dash.createNewSong")}</DialogTitle>
           </DialogHeader>
           <div className="py-4">
             <Label htmlFor="song-title" className="text-sm font-medium mb-2 block">
-              Song Title
+              {t("dash.songTitleLabel")}
             </Label>
             <Input
               id="song-title"
               value={newSongTitle}
               onChange={(e) => setNewSongTitle(e.target.value)}
-              placeholder="Enter song title"
+              placeholder={t("dash.songTitlePlaceholder")}
               className="bg-[#121212] border-white/10 text-white"
               data-testid="new-song-title-input"
             />
@@ -315,14 +317,14 @@ const Dashboard = ({ token, logout, user, setUser }) => {
               className="border-white/20 bg-transparent hover:bg-white/5"
               data-testid="new-song-cancel-btn"
             >
-              Cancel
+              {t("dash.cancel")}
             </Button>
             <Button
               onClick={handleCreateSong}
               className="bg-[#7c5cff] text-white hover:bg-[#6a4ef0] font-bold"
               data-testid="new-song-create-btn"
             >
-              Create Song
+              {t("dash.createSong")}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -2,11 +2,13 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { Sparkles, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { useI18n } from "../i18n/I18nProvider";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 const SynonymsPanel = ({ selectedWord, token }) => {
+  const { t } = useI18n();
   const [word, setWord] = useState(selectedWord || "");
   const [synonyms, setSynonyms] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -42,7 +44,7 @@ const SynonymsPanel = ({ selectedWord, token }) => {
     <div className="backdrop-studio p-6 rounded-sm" data-testid="synonyms-panel">
       <div className="flex items-center gap-2 mb-6">
         <Sparkles className="text-[#7c5cff]" size={20} />
-        <h3 className="font-bold text-lg">Writing Tools</h3>
+        <h3 className="font-bold text-lg">{t("dict.heading")}</h3>
       </div>
 
       <form onSubmit={handleSearch} className="mb-6">
@@ -50,7 +52,7 @@ const SynonymsPanel = ({ selectedWord, token }) => {
           <Input
             value={word}
             onChange={(e) => setWord(e.target.value)}
-            placeholder="Enter a word..."
+            placeholder={t("dict.search.placeholder")}
             className="bg-[#121212] border-white/10 text-white pr-10"
             data-testid="synonyms-search-input"
           />
@@ -65,10 +67,10 @@ const SynonymsPanel = ({ selectedWord, token }) => {
       </form>
 
       {loading ? (
-        <p className="text-gray-400 text-sm">Loading...</p>
+        <p className="text-gray-400 text-sm">{t("dict.loading")}</p>
       ) : synonyms.length > 0 ? (
         <div>
-          <p className="text-xs text-gray-500 mb-3 uppercase tracking-wide">Synonyms</p>
+          <p className="text-xs text-gray-500 mb-3 uppercase tracking-wide">{t("dict.tab.synonyms")}</p>
           <div className="flex flex-wrap gap-2">
             {synonyms.map((syn, index) => (
               <span
@@ -82,11 +84,11 @@ const SynonymsPanel = ({ selectedWord, token }) => {
           </div>
         </div>
       ) : word ? (
-        <p className="text-gray-400 text-sm">No synonyms found for "{word}"</p>
+        <p className="text-gray-400 text-sm">{t("dict.noResults")} "{word}"</p>
       ) : (
         <div className="text-center py-8">
           <Sparkles size={48} className="mx-auto mb-4 text-gray-600" />
-          <p className="text-gray-400 text-sm">Select a word or search for synonyms</p>
+          <p className="text-gray-400 text-sm">{t("dict.prompt")}</p>
         </div>
       )}
     </div>
