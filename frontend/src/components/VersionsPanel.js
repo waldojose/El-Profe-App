@@ -15,7 +15,6 @@ const VersionsPanel = ({ songId, token, refreshKey }) => {
 
   useEffect(() => {
     fetchVersions();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [songId, refreshKey]);
 
   const fetchVersions = async () => {
