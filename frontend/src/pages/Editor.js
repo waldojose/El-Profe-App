@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import ContentEditable from "react-contenteditable";
 import io from "socket.io-client";
-import { ArrowLeft, Users, BarChart3, FileText, Download, Save, Crown } from "lucide-react";
+import { ArrowLeft, Users, BarChart3, FileText, Download, Save, Crown, History } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import { useI18n } from "../i18n/I18nProvider";
 import ContributionPanel from "../components/ContributionPanel";
 import SplitPanel from "../components/SplitPanel";
 import SynonymsPanel from "../components/SynonymsPanel";
+import VersionsPanel from "../components/VersionsPanel";
 import LogoBadge from "../components/LogoBadge";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -34,6 +35,7 @@ const Editor = ({ token, user }) => {
   const [selectedWord, setSelectedWord] = useState("");
   const [showAddCollaborator, setShowAddCollaborator] = useState(false);
   const [collaboratorEmail, setCollaboratorEmail] = useState("");
+  const [versionsRefreshKey, setVersionsRefreshKey] = useState(0);
   const logoUrl = "https://customer-assets.emergentagent.com/job_elprofe-app/artifacts/vq8mu8b5_A_digital_vector_graphic_features_the_logo_for__Pr.png";
 
   useEffect(() => {
@@ -143,6 +145,9 @@ const Editor = ({ token, user }) => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
+      // Refresh the version history list
+      setVersionsRefreshKey((prev) => prev + 1);
+
       toast.success(t("editor.toastSaved"));
     } catch (error) {
       toast.error(t("editor.toastSaveFailed"));
@@ -273,7 +278,7 @@ const Editor = ({ token, user }) => {
         {/* Right Sidebar - Tools & Data */}
         <div className="col-span-3 overflow-y-auto scroll-fade">
           <Tabs defaultValue="synonyms" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 bg-[#0A0A0A] border border-white/10 mb-4">
+            <TabsList className="grid w-full grid-cols-4 bg-[#0A0A0A] border border-white/10 mb-4">
               <TabsTrigger value="synonyms" data-testid="tab-synonyms">
                 {t("editor.tabTools")}
               </TabsTrigger>
@@ -282,6 +287,9 @@ const Editor = ({ token, user }) => {
               </TabsTrigger>
               <TabsTrigger value="splits" data-testid="tab-splits">
                 <FileText size={16} />
+              </TabsTrigger>
+              <TabsTrigger value="history" data-testid="tab-history" title={t("editor.tabHistory")}>
+                <History size={16} />
               </TabsTrigger>
             </TabsList>
 
@@ -295,6 +303,10 @@ const Editor = ({ token, user }) => {
 
             <TabsContent value="splits" className="mt-0">
               <SplitPanel songId={songId} token={token} user={user} song={song} />
+            </TabsContent>
+
+            <TabsContent value="history" className="mt-0">
+              <VersionsPanel songId={songId} token={token} refreshKey={versionsRefreshKey} />
             </TabsContent>
           </Tabs>
         </div>

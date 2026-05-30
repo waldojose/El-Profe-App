@@ -15,8 +15,16 @@ import jwt
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
+from reportlab.lib.units import inch
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.enums import TA_CENTER, TA_LEFT
+from reportlab.platypus import (
+    SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+)
 import io
 import base64
+import hashlib
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -1035,55 +1043,247 @@ async def export_split_sheet(proposal_id: str, current_user: User = Depends(get_
     user_ids = [s["user_id"] for s in proposal["splits"]]
     users = await db.users.find({"id": {"$in": user_ids}}, {"_id": 0}).to_list(1000)
     user_map = {u["id"]: u for u in users}
-    
-    buffer = io.BytesIO()
-    p = canvas.Canvas(buffer, pagesize=letter)
-    
-    p.setFont("Helvetica-Bold", 24)
-    p.drawString(100, 750, "Professor App")
-    p.setFont("Helvetica-Bold", 18)
-    p.drawString(100, 720, "SPLIT SHEET")
-    
-    p.setFont("Helvetica", 12)
-    y = 680
-    p.drawString(100, y, f"Song: {song['title']}")
-    y -= 20
-    p.drawString(100, y, f"Created: {proposal.get('created_at', '')}")
-    y -= 20
-    p.drawString(100, y, f"Version: {proposal['version']}")
-    y -= 40
-    
-    p.setFont("Helvetica-Bold", 14)
-    p.drawString(100, y, "SPLIT PERCENTAGES")
-    y -= 30
-    
+    sig_map = {s["user_id"]: s for s in signatures}
+
+    def _display_name(user: dict) -> str:
+        return (
+            user.get("legal_name")
+            or user.get("artist_name")
+            or user.get("email")
+            or "Unknown Writer"
+        )
+
+    # --- Signature / status state -----------------------------------------
+    all_signed = len(sig_map) >= len(proposal["splits"]) and len(proposal["splits"]) > 0
+    status = proposal.get("status", "draft")
+
+    # --- Tamper-evident hash ----------------------------------------------
+    canonical_parts = [str(proposal["id"])]
+    for split in sorted(proposal["splits"], key=lambda s: str(s.get("user_id", ""))):
+        canonical_parts.append(f"{split.get('user_id')}:{split.get('percentage')}")
+    for uid in sorted(sig_map.keys()):
+        sig = sig_map[uid]
+        canonical_parts.append(f"{uid}:{sig.get('signature_data', '')}:{sig.get('signed_at', '')}")
+    canonical = "|".join(canonical_parts)
+    doc_hash = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+    short_hash = doc_hash[:16]
+
+    generated_at = datetime.now(timezone.utc).isoformat()
+
+    # --- Styles -----------------------------------------------------------
+    styles = getSampleStyleSheet()
+    wordmark_style = ParagraphStyle(
+        "Wordmark", parent=styles["Title"], fontName="Helvetica-Bold",
+        fontSize=26, textColor=colors.white, leading=30, alignment=TA_LEFT,
+    )
+    doctitle_style = ParagraphStyle(
+        "DocTitle", parent=styles["Normal"], fontName="Helvetica-Bold",
+        fontSize=13, textColor=colors.HexColor("#FFB800"), leading=16,
+        alignment=TA_LEFT, spaceBefore=2,
+    )
+    section_style = ParagraphStyle(
+        "Section", parent=styles["Heading2"], fontName="Helvetica-Bold",
+        fontSize=12, textColor=colors.HexColor("#111111"), spaceBefore=14,
+        spaceAfter=6,
+    )
+    meta_style = ParagraphStyle(
+        "Meta", parent=styles["Normal"], fontName="Helvetica", fontSize=9,
+        textColor=colors.HexColor("#333333"), leading=14,
+    )
+    cell_style = ParagraphStyle(
+        "Cell", parent=styles["Normal"], fontName="Helvetica", fontSize=9,
+        leading=11,
+    )
+    legal_style = ParagraphStyle(
+        "Legal", parent=styles["Normal"], fontName="Helvetica", fontSize=8,
+        textColor=colors.HexColor("#444444"), leading=11, alignment=TA_LEFT,
+        spaceBefore=8,
+    )
+
+    # --- Header band (drawn as a full-width table) ------------------------
+    header_inner = Table(
+        [[Paragraph("EL PROFE", wordmark_style),
+          Paragraph("SPLIT SHEET", doctitle_style)]],
+        colWidths=[3.5 * inch, 3.0 * inch],
+    )
+    header_inner.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#050505")),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("ALIGN", (1, 0), (1, 0), "RIGHT"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 14),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 14),
+        ("TOPPADDING", (0, 0), (-1, -1), 16),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 16),
+    ]))
+
+    # --- Metadata block ---------------------------------------------------
+    meta_rows = [
+        [Paragraph("<b>Document ID:</b>", meta_style), Paragraph(str(proposal["id"]), meta_style)],
+        [Paragraph("<b>Song Title:</b>", meta_style), Paragraph(str(song.get("title", "Untitled")), meta_style)],
+        [Paragraph("<b>Version:</b>", meta_style), Paragraph(str(proposal.get("version", 1)), meta_style)],
+        [Paragraph("<b>Date Generated:</b>", meta_style), Paragraph(generated_at, meta_style)],
+        [Paragraph("<b>Status:</b>", meta_style),
+         Paragraph(("FULLY EXECUTED" if all_signed else status.upper() + " (UNSIGNED)"), meta_style)],
+    ]
+    meta_table = Table(meta_rows, colWidths=[1.4 * inch, 5.1 * inch])
+    meta_table.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("TOPPADDING", (0, 0), (-1, -1), 2),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+        ("LEFTPADDING", (0, 0), (-1, -1), 0),
+    ]))
+
+    # --- Writers table ----------------------------------------------------
+    writer_header = [
+        Paragraph("<b>Writer (Legal Name)</b>", cell_style),
+        Paragraph("<b>Artist Name</b>", cell_style),
+        Paragraph("<b>PRO</b>", cell_style),
+        Paragraph("<b>Role</b>", cell_style),
+        Paragraph("<b>Split %</b>", cell_style),
+    ]
+    writer_rows = [writer_header]
+    total_pct = 0.0
     for split in proposal["splits"]:
         user = user_map.get(split["user_id"], {})
-        p.setFont("Helvetica", 11)
-        p.drawString(120, y, f"{user.get('legal_name', 'Unknown')} ({user.get('artist_name', '')})")
-        y -= 15
-        p.drawString(140, y, f"Split: {split['percentage']}%")
-        y -= 15
-        p.drawString(140, y, f"PRO: {user.get('pro_affiliation', 'N/A')}")
-        y -= 25
-    
-    if signatures:
-        y -= 20
-        p.setFont("Helvetica-Bold", 14)
-        p.drawString(100, y, "SIGNATURES")
-        y -= 25
-        for sig in signatures:
-            user = user_map.get(sig["user_id"], {})
-            p.setFont("Helvetica", 11)
-            p.drawString(120, y, f"{user.get('legal_name', 'Unknown')}: {sig['signature_data']}")
-            y -= 20
-    
-    p.showPage()
-    p.save()
-    
+        pct = split.get("percentage", 0) or 0
+        try:
+            total_pct += float(pct)
+        except (TypeError, ValueError):
+            pass
+        role = user.get("role") or (", ".join(user.get("roles", [])) if user.get("roles") else "—")
+        writer_rows.append([
+            Paragraph(_display_name(user), cell_style),
+            Paragraph(str(user.get("artist_name") or "—"), cell_style),
+            Paragraph(str(user.get("pro_affiliation") or "—"), cell_style),
+            Paragraph(str(role), cell_style),
+            Paragraph(f"{pct}%", cell_style),
+        ])
+    total_disp = int(total_pct) if float(total_pct).is_integer() else round(total_pct, 2)
+    writer_rows.append([
+        Paragraph("<b>TOTAL</b>", cell_style), "", "", "",
+        Paragraph(f"<b>{total_disp}%</b>", cell_style),
+    ])
+    writers_table = Table(
+        writer_rows,
+        colWidths=[1.9 * inch, 1.5 * inch, 1.0 * inch, 1.1 * inch, 1.0 * inch],
+    )
+    writers_table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#050505")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#999999")),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("ROWBACKGROUNDS", (0, 1), (-1, -2), [colors.white, colors.HexColor("#f5f5f5")]),
+        ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#FFF4D6")),
+        ("SPAN", (0, -1), (3, -1)),
+        ("TOPPADDING", (0, 0), (-1, -1), 5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+        ("LEFTPADDING", (0, 0), (-1, -1), 6),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+    ]))
+
+    # --- Signatures table -------------------------------------------------
+    sig_header = [
+        Paragraph("<b>Writer</b>", cell_style),
+        Paragraph("<b>Signature</b>", cell_style),
+        Paragraph("<b>Signed At (UTC)</b>", cell_style),
+    ]
+    sig_rows = [sig_header]
+    for split in proposal["splits"]:
+        user = user_map.get(split["user_id"], {})
+        name = _display_name(user)
+        sig = sig_map.get(split["user_id"])
+        if sig:
+            sig_text = f"/s/ {sig.get('signature_data') or name}"
+            signed_at = str(sig.get("signed_at", ""))
+        else:
+            sig_text = "PENDING"
+            signed_at = "—"
+        sig_rows.append([
+            Paragraph(name, cell_style),
+            Paragraph(sig_text, cell_style),
+            Paragraph(signed_at, cell_style),
+        ])
+    sig_table = Table(sig_rows, colWidths=[2.2 * inch, 2.5 * inch, 1.8 * inch])
+    sig_table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#050505")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#999999")),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f5f5f5")]),
+        ("TOPPADDING", (0, 0), (-1, -1), 5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+        ("LEFTPADDING", (0, 0), (-1, -1), 6),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+    ]))
+
+    # --- Legal clause -----------------------------------------------------
+    legal_text = (
+        "The undersigned writers hereby agree that the percentages set forth above "
+        "accurately represent each writer's respective ownership share of the musical "
+        "composition identified in this document. Any contribution or character-level "
+        "tracking data referenced by the El Profe platform is provided solely as "
+        "decision-support information and does not itself determine or bind these "
+        "ownership percentages, which are established exclusively by mutual agreement of "
+        "the writers. This split sheet becomes fully executed only when every listed "
+        "writer has signed; until then it constitutes a non-binding draft. Each signatory "
+        "represents that they are authorized to enter into this agreement with respect to "
+        "their contribution to the composition."
+    )
+
+    # --- Build document ---------------------------------------------------
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer, pagesize=letter,
+        leftMargin=0.75 * inch, rightMargin=0.75 * inch,
+        topMargin=0.6 * inch, bottomMargin=0.7 * inch,
+        title=f"Split Sheet - {song.get('title', '')}",
+    )
+
+    story = [
+        header_inner,
+        Spacer(1, 16),
+        meta_table,
+        Paragraph("Writers &amp; Splits", section_style),
+        writers_table,
+        Paragraph("Signatures", section_style),
+        sig_table,
+        Paragraph("Agreement", section_style),
+        Paragraph(legal_text, legal_style),
+    ]
+
+    doc_id = str(proposal["id"])
+
+    def _draw_overlays(canvas_obj, doc_obj):
+        # Tamper-evident footer on every page.
+        canvas_obj.saveState()
+        canvas_obj.setFont("Helvetica", 7)
+        canvas_obj.setFillColor(colors.HexColor("#777777"))
+        footer_y = 0.4 * inch
+        canvas_obj.drawString(
+            0.75 * inch, footer_y,
+            f"Doc ID: {doc_id}  |  SHA-256: {short_hash}…",
+        )
+        canvas_obj.drawRightString(
+            letter[0] - 0.75 * inch, footer_y,
+            f"Page {doc_obj.page}",
+        )
+        canvas_obj.restoreState()
+
+        # DRAFT watermark only while not fully signed.
+        if not all_signed:
+            canvas_obj.saveState()
+            canvas_obj.setFont("Helvetica-Bold", 110)
+            canvas_obj.setFillColor(colors.HexColor("#E0E0E0"))
+            canvas_obj.translate(letter[0] / 2, letter[1] / 2)
+            canvas_obj.rotate(45)
+            canvas_obj.drawCentredString(0, 0, "DRAFT")
+            canvas_obj.restoreState()
+
+    doc.build(story, onFirstPage=_draw_overlays, onLaterPages=_draw_overlays)
+
     buffer.seek(0)
     pdf_base64 = base64.b64encode(buffer.getvalue()).decode()
-    
+
     return {"pdf": pdf_base64, "filename": f"split-sheet-{song['title']}.pdf"}
 
 # WebSocket

@@ -12,6 +12,106 @@ import { useI18n } from "../i18n/I18nProvider";
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
+// Aurora palette — segments cycle through these in order
+const AURORA_PALETTE = ["#7c5cff", "#22d3ee", "#f65bae", "#9d7bff", "#34d399", "#fbbf24"];
+
+// Compact, dependency-free donut chart drawn with inline SVG.
+// Uses stroke-dasharray / stroke-dashoffset math (circumference = 2*pi*r).
+const SplitDonut = ({ segments, testId, size = 132, stroke = 16 }) => {
+  const radius = (size - stroke) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const cx = size / 2;
+  const cy = size / 2;
+
+  const total = segments.reduce((sum, s) => sum + (parseFloat(s.value) || 0), 0);
+  let offsetAccumulator = 0;
+
+  return (
+    <div
+      className="flex items-center gap-4"
+      data-testid={testId}
+    >
+      <div className="relative shrink-0" style={{ width: size, height: size }}>
+        <svg
+          width={size}
+          height={size}
+          viewBox={`0 0 ${size} ${size}`}
+          style={{ transform: "rotate(-90deg)" }}
+          role="img"
+          aria-label="Split percentages donut chart"
+        >
+          {/* track */}
+          <circle
+            cx={cx}
+            cy={cy}
+            r={radius}
+            fill="none"
+            stroke="var(--ep-border)"
+            strokeWidth={stroke}
+            opacity={0.35}
+          />
+          {segments.map((seg, i) => {
+            const value = parseFloat(seg.value) || 0;
+            const fraction = total > 0 ? value / 100 : 0;
+            const dash = circumference * fraction;
+            const dashoffset = -(circumference * (offsetAccumulator / 100));
+            offsetAccumulator += value;
+            const color = AURORA_PALETTE[i % AURORA_PALETTE.length];
+            return (
+              <circle
+                key={i}
+                cx={cx}
+                cy={cy}
+                r={radius}
+                fill="none"
+                stroke={color}
+                strokeWidth={stroke}
+                strokeDasharray={`${dash} ${circumference - dash}`}
+                strokeDashoffset={dashoffset}
+                strokeLinecap="butt"
+              />
+            );
+          })}
+        </svg>
+        {/* center label in the donut hole */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+          <span
+            className="font-bold text-lg text-mono"
+            style={{ color: "var(--ep-text)" }}
+          >
+            {total.toFixed(total % 1 === 0 ? 0 : 1)}%
+          </span>
+        </div>
+      </div>
+
+      {/* legend: swatch + name + percentage */}
+      <ul className="flex-1 space-y-1.5 min-w-0">
+        {segments.map((seg, i) => {
+          const color = AURORA_PALETTE[i % AURORA_PALETTE.length];
+          return (
+            <li key={i} className="flex items-center gap-2 text-xs min-w-0">
+              <span
+                className="inline-block w-3 h-3 rounded-sm shrink-0"
+                style={{ backgroundColor: color }}
+                aria-hidden="true"
+              />
+              <span className="truncate" style={{ color: "var(--ep-muted)" }}>
+                {seg.label}
+              </span>
+              <span
+                className="ml-auto font-bold text-mono shrink-0"
+                style={{ color }}
+              >
+                {(parseFloat(seg.value) || 0)}%
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+};
+
 const SplitPanel = ({ songId, token, user, song }) => {
   const { t } = useI18n();
   const [splits, setSplits] = useState([]);
