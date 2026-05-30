@@ -1,4 +1,5 @@
 // El Profe i18n dictionaries. English is canonical; Spanish is first-class.
+// Spanish is NEUTRAL Latin American (tuteo), not Rioplatense voseo.
 // Keys are flat dotted strings. Add new keys to BOTH languages.
 import { internal } from "./internal";
 
@@ -132,15 +133,15 @@ export const translations = {
     "nav.features": "Funciones",
     "nav.pricing": "Precios",
     "nav.faq": "Preguntas",
-    "nav.login": "Ingresar",
+    "nav.login": "Iniciar sesión",
     "nav.start": "Empezar gratis",
 
     // Hero
     "hero.eyebrow": "Plataforma de splits para compositores",
-    "hero.titleA": "Co-escribí. Registrá.",
-    "hero.titleB": "Repartí con justicia.",
+    "hero.titleA": "Co-escribe. Registra.",
+    "hero.titleB": "Reparte con justicia.",
     "hero.subtitle":
-      "La plataforma para compositores profesionales: registrá cada aporte, repartí los splits con justicia, juntá firmas vinculantes y exportá PDFs a prueba de manipulación para ASCAP, BMI, SESAC y SGAE.",
+      "La plataforma para compositores profesionales: registra cada aporte, reparte los splits con justicia, reúne firmas vinculantes y exporta PDFs a prueba de manipulación para ASCAP, BMI, SESAC y SGAE.",
     "hero.ctaStart": "Empezar gratis",
     "hero.ctaPricing": "Ver precios",
     "hero.trust": "Sin tarjeta · Los splits los deciden los escritores, nunca la IA",
@@ -152,13 +153,13 @@ export const translations = {
     "how.titleA": "De la primera línea al ",
     "how.titleB": "split sheet firmado",
     "step1.title": "Escriban juntos",
-    "step1.desc": "Abrí una canción y co-escribí en tiempo real — cada aporte se captura en el momento.",
-    "step2.title": "Mirá las contribuciones",
+    "step1.desc": "Abre una canción y co-escribe en tiempo real — cada aporte se captura en el momento.",
+    "step2.title": "Mira las contribuciones",
     "step2.desc": "El análisis a nivel de carácter muestra la parte de cada autor como apoyo a la decisión, no un veredicto.",
-    "step3.title": "Proponé el split",
-    "step3.desc": "Mové los sliders y acuerden porcentajes que sumen 100%. Vos tenés el control.",
+    "step3.title": "Propón el split",
+    "step3.desc": "Mueve los sliders y acuerda porcentajes que sumen 100%. Tú tienes el control.",
     "step4.title": "Firmen y exporten",
-    "step4.desc": "Todos firman, el sheet se bloquea y exportás un PDF a prueba de manipulación para tu PRO.",
+    "step4.desc": "Todos firman, el sheet se bloquea y exportas un PDF a prueba de manipulación para tu PRO.",
 
     // Features
     "features.eyebrow": "Hecho para creadores serios",
@@ -167,13 +168,13 @@ export const translations = {
     "feat1.title": "Co-escritura en tiempo real",
     "feat1.desc": "Escriban juntos con presencia en vivo y sincronización instantánea en todos los dispositivos.",
     "feat2.title": "Seguimiento por carácter",
-    "feat2.desc": "Cada tecla queda registrada. Mirá exactamente quién escribió qué — un historial inalterable.",
+    "feat2.desc": "Cada tecla queda registrada. Mira exactamente quién escribió qué — un historial inalterable.",
     "feat3.title": "Split sheets manuales",
-    "feat3.desc": "Vos decidís los porcentajes. Los datos apoyan la negociación — nunca se asignan solos.",
+    "feat3.desc": "Tú decides los porcentajes. Los datos apoyan la negociación — nunca se asignan solos.",
     "feat4.title": "Firmas vinculantes",
     "feat4.desc": "Cada co-autor firma. Los splits se bloquean solo cuando están todas las firmas.",
     "feat5.title": "Historial de versiones",
-    "feat5.desc": "Restaurá cualquier versión, compará cambios y rastreá cada decisión creativa.",
+    "feat5.desc": "Restaura cualquier versión, compara cambios y rastrea cada decisión creativa.",
     "feat6.title": "Bilingüe EN / ES",
     "feat6.desc": "Pensado en español primero e inglés canónico, con un diccionario curado para compositores.",
 
@@ -198,7 +199,7 @@ export const translations = {
 
     // Pricing
     "pricing.eyebrow": "Precios",
-    "pricing.titleA": "Empezá gratis. Pasá a ",
+    "pricing.titleA": "Empieza gratis. Pasa a ",
     "pricing.titleB": "Pro",
     "pricing.titleC": " para la capa legal.",
     "pricing.free": "Gratis",
@@ -229,18 +230,18 @@ export const translations = {
     "faq.eyebrow": "Preguntas",
     "faq.title": "Bueno saberlo",
     "faq.q1": "¿Cómo se deciden los splits?",
-    "faq.a1": "Siempre los deciden los escritores — a mano. El Profe registra el aporte a nivel de carácter para darte datos firmes en la negociación, pero nunca asigna porcentajes por su cuenta. Vos ponés los números y todos firman.",
+    "faq.a1": "Siempre los deciden los escritores — a mano. El Profe registra el aporte a nivel de carácter para darte datos firmes en la negociación, pero nunca asigna porcentajes por su cuenta. Tú pones los números y todos firman.",
     "faq.q2": "¿Qué hace al PDF legalmente defendible?",
     "faq.a2": "Cada split sheet lleva un ID de documento, la tabla completa de firmas en formato /s/ Nombre, marcas de tiempo y un pie a prueba de manipulación. Hasta que firman todos, el PDF lleva la marca DRAFT.",
     "faq.q3": "¿Puedo registrar las obras en mi PRO?",
-    "faq.a3": "Sí. Exportás un split sheet limpio y firmado, listo para presentar en ASCAP, BMI, SESAC o SGAE.",
+    "faq.a3": "Sí. Exportas un split sheet limpio y firmado, listo para presentar en ASCAP, BMI, SESAC o SGAE.",
     "faq.q4": "¿Mi trabajo es privado?",
-    "faq.a4": "Tus canciones son tuyas. Los colaboradores solo ven las canciones a las que los invitás, y el registro de auditoría guarda cada cambio.",
+    "faq.a4": "Tus canciones son tuyas. Los colaboradores solo ven las canciones a las que los invitas, y el registro de auditoría guarda cada cambio.",
 
     // Final CTA + footer
-    "cta.titleA": "Protegé tu ",
+    "cta.titleA": "Protege tu ",
     "cta.titleB": "trabajo creativo",
-    "cta.subtitle": "Sumate a los compositores que reparten splits con evidencia, firman con intención y se van con un documento que se sostiene.",
+    "cta.subtitle": "Únete a los compositores que reparten splits con evidencia, firman con intención y se van con un documento que se sostiene.",
     "cta.create": "Crear cuenta gratis",
     "cta.upgrade": "Pasar a Pro",
     "footer.rights": "© 2025 El Profe por José “El Profesor Gómez”. Todos los derechos reservados.",
