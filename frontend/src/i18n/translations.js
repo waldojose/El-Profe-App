@@ -138,8 +138,8 @@ export const translations = {
 
     // Hero
     "hero.eyebrow": "Plataforma de splits para compositores",
-    "hero.titleA": "Co-escribe. Registra.",
-    "hero.titleB": "Reparte con justicia.",
+    "hero.titleA": "Escribe. Registra.",
+    "hero.titleB": "Divide Co-Autoría.",
     "hero.subtitle":
       "La plataforma para compositores profesionales: registra cada aporte, reparte los splits con justicia, reúne firmas vinculantes y exporta PDFs a prueba de manipulación para ASCAP, BMI, SESAC y SGAE.",
     "hero.ctaStart": "Empezar gratis",
