@@ -69,7 +69,7 @@ const Auth = ({ setToken, setUser }) => {
       >
         {/* Logo */}
         <div className="text-center mb-8">
-          <img src={logoUrl} alt="Professor App" className="h-16 w-auto mx-auto mb-4" />
+          <img src={logoUrl} alt="Professor App" className="h-32 w-auto mx-auto mb-4 rounded-2xl" />
           <h1 className="text-heading text-3xl font-bold mb-2">
             {mode === "login" ? t("auth.welcomeBack") : t("auth.joinTitle")}
           </h1>
