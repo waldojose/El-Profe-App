@@ -16,8 +16,31 @@ Implementation notes:
 
 import json
 import time
+import unicodedata
 import urllib.parse
 import urllib.request
+
+
+def _strip_accents(s: str) -> str:
+    return "".join(
+        c for c in unicodedata.normalize("NFD", s)
+        if unicodedata.category(c) != "Mn"
+    )
+
+
+_VOWEL_ACCENT = {"a": "á", "e": "é", "i": "í", "o": "ó", "u": "ú"}
+
+
+def _accent_variants(ending: str) -> set:
+    """Spanish agudas often stress the last vowel (canción, corazón). Produce
+    the plain ending plus a variant with its last vowel accented, so we match
+    accented Spanish vocabulary even when the input was typed without accents."""
+    variants = {ending}
+    for i in range(len(ending) - 1, -1, -1):
+        if ending[i] in _VOWEL_ACCENT:
+            variants.add(ending[:i] + _VOWEL_ACCENT[ending[i]] + ending[i + 1:])
+            break
+    return variants
 
 # ---------------------------------------------------------------------------
 # In-memory TTL cache: { (kind, lang, word): (expires_at_epoch, value) }
@@ -107,12 +130,50 @@ def antonyms_remote(word: str, lang: str) -> list:
     return _dedupe(_datamuse({"rel_ant": w, "v": v}))
 
 
+def _es_datamuse_rhymes(word: str, limit: int = 24) -> list:
+    """Real Spanish rhymes: Datamuse rel_rhy uses ENGLISH phonetics (corazón ->
+    groan/tone), so for Spanish we fetch words that SHARE THE ENDING via the
+    spelled-like pattern (sp=*<ending>&v=es), accent-aware."""
+    w = word.lower()
+    wn = _strip_accents(w)
+    out = []
+    for n in (3, 2):
+        if len(w) <= n:
+            continue
+        ending = w[-n:]
+        for cand_ending in _accent_variants(ending):
+            for r in _datamuse({"sp": "*" + cand_ending, "v": "es"}, max_results=80):
+                rl = r.lower()
+                if rl == w or len(rl) < 4 or " " in rl:
+                    continue
+                if _strip_accents(rl).endswith(_strip_accents(ending)):
+                    out.append(r)
+        if len(out) >= limit * 2:
+            break
+    end3 = wn[-3:]
+    out.sort(key=lambda r: (not _strip_accents(r.lower()).endswith(end3), len(r)))
+    # Accent-aware dedupe: keep the accented spelling, drop the bare duplicate.
+    seen, final = set(), []
+    for r in out:
+        k = _strip_accents(r.lower())
+        if k in seen:
+            continue
+        seen.add(k)
+        final.append(r)
+        if len(final) >= limit:
+            break
+    return final
+
+
 def rhymes_remote(word: str, lang: str) -> list:
     w = word.lower()
-    v = "es" if lang == "es" else "en"
-    out = _datamuse({"rel_rhy": w, "v": v})
+    if lang == "es":
+        # Spanish: ending-match (sp=*) + curated pool. NEVER rel_rhy (English phonetics).
+        out = _es_datamuse_rhymes(w) + spanish_rhymes(w)
+        return _dedupe(out, 24)
+    out = _datamuse({"rel_rhy": w})
     if len(out) < 8:  # pad with near-rhymes
-        out = out + _datamuse({"rel_nry": w, "v": v})
+        out = out + _datamuse({"rel_nry": w})
     return _dedupe(out)
 
 
@@ -268,18 +329,18 @@ def _es_rhyme_key(w: str) -> str:
 
 
 def spanish_rhymes(word: str, limit: int = 20) -> list:
-    w = word.lower()
-    key3 = w[-3:]
-    key2 = w[-2:]
+    # Accent-insensitive matching so "corazon" rhymes with "razón", etc.
+    wn = _strip_accents(word.lower())
+    key3 = wn[-3:]
+    key2 = wn[-2:]
     matches = []
     for cand in _ES_RHYME_POOL:
-        if cand == w:
+        cn = _strip_accents(cand.lower())
+        if cn == wn:
             continue
-        cl = cand.lower()
-        if cl.endswith(key3) or (len(key2) == 2 and cl.endswith(key2)):
+        if cn.endswith(key3) or (len(key2) == 2 and cn.endswith(key2)):
             matches.append(cand)
-    # Prefer stronger (3-letter) matches first.
-    matches.sort(key=lambda c: (not c.lower().endswith(key3), c))
+    matches.sort(key=lambda c: (not _strip_accents(c.lower()).endswith(key3), c))
     return _dedupe(matches, limit)
 
 
