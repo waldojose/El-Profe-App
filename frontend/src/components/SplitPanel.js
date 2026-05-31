@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { FileText, Plus, Crown, Check, Download } from "lucide-react";
+import { FileText, Plus, Crown, Check, Download, Lock, Clock, ShieldCheck } from "lucide-react";
 import { motion } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -113,31 +113,98 @@ const SplitDonut = ({ segments, testId, size = 132, stroke = 16 }) => {
 };
 
 const SplitPanel = ({ songId, token, user, song }) => {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [splits, setSplits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showNewSplitModal, setShowNewSplitModal] = useState(false);
   const [newSplits, setNewSplits] = useState([{ user_id: user?.id, percentage: 100 }]);
   const [showSignModal, setShowSignModal] = useState(false);
   const [selectedProposal, setSelectedProposal] = useState(null);
-  const [signatureName, setSignatureName] = useState(user?.legal_name || "");
+  const [signatureName, setSignatureName] = useState(user?.legal_name || user?.artist_name || "");
+  const [agreed, setAgreed] = useState(false);
+  // user_id -> display name
+  const [nameMap, setNameMap] = useState({});
+  // proposal_id -> [signatures]
+  const [sigMap, setSigMap] = useState({});
 
-  useEffect(() => {
-    fetchSplits();
-  }, [songId]);
+  const authHeaders = useCallback(
+    () => ({ headers: { Authorization: `Bearer ${token}` } }),
+    [token]
+  );
 
-  const fetchSplits = async () => {
+  const fetchNames = useCallback(async () => {
     try {
-      const response = await axios.get(`${API}/splits/${songId}`, {
-        headers: { Authorization: `Bearer ${token}` }
+      const res = await axios.get(`${API}/songs/${songId}/collaborators`, authHeaders());
+      const map = {};
+      (res.data || []).forEach((u) => {
+        map[u.id] = u.artist_name || u.legal_name || u.email || u.id;
       });
-      setSplits(response.data);
+      setNameMap(map);
     } catch (error) {
-      console.error('Failed to fetch splits', error);
+      console.error("Failed to fetch collaborators", error);
+    }
+  }, [songId, authHeaders]);
+
+  const fetchSignatures = useCallback(async (proposals) => {
+    try {
+      const entries = await Promise.all(
+        proposals.map(async (p) => {
+          const res = await axios.get(`${API}/signatures/${p.id}`, authHeaders());
+          return [p.id, res.data || []];
+        })
+      );
+      setSigMap(Object.fromEntries(entries));
+    } catch (error) {
+      console.error("Failed to fetch signatures", error);
+    }
+  }, [authHeaders]);
+
+  const fetchSplits = useCallback(async () => {
+    try {
+      const response = await axios.get(`${API}/splits/${songId}`, authHeaders());
+      setSplits(response.data);
+      await fetchSignatures(response.data);
+    } catch (error) {
+      console.error("Failed to fetch splits", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [songId, authHeaders, fetchSignatures]);
+
+  useEffect(() => {
+    fetchSplits();
+    fetchNames();
+  }, [fetchSplits, fetchNames]);
+
+  const nameFor = useCallback(
+    (userId) => nameMap[userId] || (userId === user?.id ? (user?.artist_name || user?.legal_name) : null) || userId,
+    [nameMap, user]
+  );
+
+  // Everyone who must sign this proposal: union of its writers + the song collaborators.
+  const requiredSigners = useCallback(
+    (proposal) => {
+      const ids = new Set((proposal?.splits || []).map((s) => s.user_id).filter(Boolean));
+      (song?.collaborators || []).forEach((id) => ids.add(id));
+      return [...ids];
+    },
+    [song]
+  );
+
+  const signatureFor = useCallback(
+    (proposalId, userId) => (sigMap[proposalId] || []).find((s) => s.user_id === userId),
+    [sigMap]
+  );
+
+  const isFullySigned = useCallback(
+    (proposal) => {
+      if (proposal.status === "signed") return true;
+      const required = requiredSigners(proposal);
+      if (required.length === 0) return false;
+      return required.every((id) => signatureFor(proposal.id, id));
+    },
+    [requiredSigners, signatureFor]
+  );
 
   const handleCreateSplit = async () => {
     const total = newSplits.reduce((sum, s) => sum + parseFloat(s.percentage || 0), 0);
@@ -149,13 +216,10 @@ const SplitPanel = ({ songId, token, user, song }) => {
     try {
       await axios.post(
         `${API}/splits`,
-        {
-          song_id: songId,
-          splits: newSplits
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { song_id: songId, splits: newSplits },
+        authHeaders()
       );
-      
+
       toast.success(t("split.toast.created"));
       setShowNewSplitModal(false);
       setNewSplits([{ user_id: user?.id, percentage: 100 }]);
@@ -163,6 +227,13 @@ const SplitPanel = ({ songId, token, user, song }) => {
     } catch (error) {
       toast.error(error.response?.data?.detail || t("split.error.create"));
     }
+  };
+
+  const openSignModal = (proposal) => {
+    setSelectedProposal(proposal);
+    setSignatureName(user?.legal_name || user?.artist_name || "");
+    setAgreed(false);
+    setShowSignModal(true);
   };
 
   const handleSign = async () => {
@@ -176,14 +247,17 @@ const SplitPanel = ({ songId, token, user, song }) => {
         `${API}/signatures`,
         {
           split_proposal_id: selectedProposal.id,
-          signature_data: `${signatureName} - ${new Date().toISOString()}`
+          // signature_data is the typed legal name (audit/date is stored server-side)
+          signature_data: signatureName.trim()
         },
-        { headers: { Authorization: `Bearer ${token}` } }
+        authHeaders()
       );
-      
+
       toast.success(t("split.toast.signed"));
       setShowSignModal(false);
       setSelectedProposal(null);
+      setAgreed(false);
+      fetchSplits();
     } catch (error) {
       toast.error(error.response?.data?.detail || t("split.error.sign"));
     }
@@ -191,18 +265,29 @@ const SplitPanel = ({ songId, token, user, song }) => {
 
   const handleExportPDF = async (proposalId) => {
     try {
-      const response = await axios.get(`${API}/export/split-sheet/${proposalId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      const link = document.createElement('a');
+      const response = await axios.get(`${API}/export/split-sheet/${proposalId}`, authHeaders());
+
+      const link = document.createElement("a");
       link.href = `data:application/pdf;base64,${response.data.pdf}`;
       link.download = response.data.filename;
       link.click();
-      
+
       toast.success(t("split.toast.pdfExported"));
     } catch (error) {
       toast.error(error.response?.data?.detail || t("split.error.export"));
+    }
+  };
+
+  const fmtDate = (iso) => {
+    if (!iso) return "";
+    try {
+      return new Date(iso).toLocaleDateString(lang === "es" ? "es" : "en", {
+        year: "numeric",
+        month: "short",
+        day: "numeric"
+      });
+    } catch {
+      return "";
     }
   };
 
@@ -239,58 +324,119 @@ const SplitPanel = ({ songId, token, user, song }) => {
       </div>
 
       <div className="space-y-4">
-        {splits.length === 0 ? (
+        {loading ? (
+          <p className="text-gray-400 text-sm">{t("dash.loading")}</p>
+        ) : splits.length === 0 ? (
           <p className="text-gray-400 text-sm">{t("split.empty")}</p>
         ) : (
-          splits.map((split, index) => (
-            <motion.div
-              key={split.id}
-              className="p-4 bg-[#121212] rounded-sm border border-white/5"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              data-testid={`split-item-${index}`}
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <p className="font-semibold text-sm">{t("split.version")} {split.version}</p>
-                  <p className="text-xs text-gray-500">{split.status}</p>
-                </div>
-                {split.status === 'approved' && (
-                  <Check size={16} className="text-green-500" />
-                )}
-              </div>
+          splits.map((split, index) => {
+            const required = requiredSigners(split);
+            const locked = isFullySigned(split);
+            const mySignature = signatureFor(split.id, user?.id);
+            const iAmRequired = required.includes(user?.id);
 
-              <div className="space-y-2 mb-3">
-                {split.splits.map((s, i) => (
-                  <div key={i} className="flex justify-between text-xs">
-                    <span className="text-gray-400">{t("split.contributor")} {i + 1}</span>
-                    <span className="font-bold text-[#7c5cff] text-mono">{s.percentage}%</span>
+            return (
+              <motion.div
+                key={split.id}
+                className="p-4 bg-[#121212] rounded-sm border"
+                style={{ borderColor: locked ? "rgba(52,211,153,0.4)" : "rgba(255,255,255,0.05)" }}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                data-testid={`split-item-${index}`}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <p className="font-semibold text-sm">{t("split.version")} {split.version}</p>
+                    <p className="text-xs text-gray-500">{split.status}</p>
                   </div>
-                ))}
-              </div>
+                  {locked && <Check size={16} className="text-[#34d399]" />}
+                </div>
 
-              <div className="flex gap-2">
-                <button
-                  onClick={() => {
-                    setSelectedProposal(split);
-                    setShowSignModal(true);
-                  }}
-                  className="flex-1 px-3 py-2 bg-[#7c5cff] text-white text-xs font-bold rounded-sm hover:bg-[#6a4ef0] transition-colors"
-                  data-testid={`sign-split-btn-${index}`}
-                >
-                  {t("split.sign")}
-                </button>
-                <button
-                  onClick={() => handleExportPDF(split.id)}
-                  className="px-3 py-2 border border-white/20 text-xs rounded-sm hover:bg-white/5 transition-colors"
-                  data-testid={`export-split-btn-${index}`}
-                >
-                  <Download size={14} />
-                </button>
-              </div>
-            </motion.div>
-          ))
+                {/* Per-writer split + signature status */}
+                <div className="space-y-2 mb-3">
+                  <p className="text-[11px] uppercase tracking-wide text-gray-500">{t("split.status.heading")}</p>
+                  {split.splits.map((s, i) => {
+                    const sig = signatureFor(split.id, s.user_id);
+                    const color = AURORA_PALETTE[i % AURORA_PALETTE.length];
+                    return (
+                      <div
+                        key={i}
+                        className="flex items-center justify-between text-xs gap-2"
+                        data-testid={`split-writer-${index}-${i}`}
+                      >
+                        <span className="flex items-center gap-2 min-w-0">
+                          <span className="inline-block w-2.5 h-2.5 rounded-sm shrink-0" style={{ backgroundColor: color }} aria-hidden="true" />
+                          <span className="truncate text-gray-300">{nameFor(s.user_id)}</span>
+                          <span className="font-bold text-mono shrink-0" style={{ color }}>{s.percentage}%</span>
+                        </span>
+                        {sig ? (
+                          <span className="flex items-center gap-1 text-[#34d399] shrink-0" data-testid={`sig-status-signed-${index}-${i}`}>
+                            <Check size={12} />
+                            {t("split.status.signed")} · {fmtDate(sig.signed_at)}
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-1 text-gray-500 shrink-0" data-testid={`sig-status-pending-${index}-${i}`}>
+                            <Clock size={12} />
+                            {t("split.status.pending")}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Locked banner */}
+                {locked && (
+                  <div
+                    className="flex items-center gap-2 mb-3 p-2 rounded-sm"
+                    style={{ background: "rgba(52,211,153,0.08)", border: "1px solid rgba(52,211,153,0.3)" }}
+                    data-testid={`split-locked-banner-${index}`}
+                  >
+                    <Lock size={14} className="text-[#34d399] shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-[#34d399]">{t("split.locked.banner")}</p>
+                      <p className="text-[11px] text-gray-400">{t("split.locked.bannerDesc")}</p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex gap-2">
+                  {iAmRequired && !mySignature && !locked && (
+                    <button
+                      onClick={() => openSignModal(split)}
+                      className="flex-1 px-3 py-2 bg-[#7c5cff] text-white text-xs font-bold rounded-sm hover:bg-[#6a4ef0] transition-colors"
+                      data-testid={`sign-split-btn-${index}`}
+                    >
+                      {t("split.sign")}
+                    </button>
+                  )}
+                  {mySignature && !locked && (
+                    <span
+                      className="flex-1 px-3 py-2 text-xs text-[#34d399] flex items-center gap-1"
+                      data-testid={`already-signed-${index}`}
+                    >
+                      <Check size={14} /> {t("split.status.youSigned")}
+                    </span>
+                  )}
+                  <button
+                    onClick={() => handleExportPDF(split.id)}
+                    disabled={!locked}
+                    title={locked ? t("split.download") : t("split.status.pending")}
+                    className={`px-3 py-2 border text-xs rounded-sm transition-colors flex items-center gap-1 ${
+                      locked
+                        ? "border-[#34d399]/40 text-[#34d399] hover:bg-[#34d399]/10"
+                        : "border-white/20 text-gray-500 opacity-50 cursor-not-allowed"
+                    }`}
+                    data-testid={`export-split-btn-${index}`}
+                  >
+                    <Download size={14} />
+                    {locked && <span>{t("split.download")}</span>}
+                  </button>
+                </div>
+              </motion.div>
+            );
+          })
         )}
       </div>
 
@@ -344,25 +490,84 @@ const SplitPanel = ({ songId, token, user, song }) => {
         </DialogContent>
       </Dialog>
 
-      {/* Sign Modal */}
+      {/* Sign Modal — DocuSign-like flow */}
       <Dialog open={showSignModal} onOpenChange={setShowSignModal}>
-        <DialogContent className="bg-[#0A0A0A] border border-white/10 text-white" data-testid="sign-modal">
+        <DialogContent className="bg-[#0A0A0A] border border-white/10 text-white max-h-[90vh] overflow-y-auto" data-testid="sign-modal">
           <DialogHeader>
-            <DialogTitle className="text-heading text-2xl">{t("split.modal.signTitle")}</DialogTitle>
+            <DialogTitle className="text-heading text-2xl flex items-center gap-2">
+              <ShieldCheck size={20} className="text-[#7c5cff]" />
+              {t("split.modal.signTitle")}
+            </DialogTitle>
           </DialogHeader>
-          <div className="py-4">
-            <Label className="text-sm mb-2 block">{t("split.sign.label")}</Label>
-            <Input
-              value={signatureName}
-              onChange={(e) => setSignatureName(e.target.value)}
-              placeholder={t("split.sign.placeholder")}
-              className="bg-[#121212] border-white/10 text-white"
-              data-testid="signature-name-input"
-            />
-            <p className="text-xs text-gray-400 mt-2">
-              {t("split.sign.agreement")}
+
+          <div className="py-2 space-y-4">
+            {/* Split summary */}
+            {selectedProposal && (
+              <div className="rounded-sm border border-white/10 p-3 bg-[#121212]" data-testid="sign-split-summary">
+                <p className="text-[11px] uppercase tracking-wide text-gray-500 mb-2">{t("split.sign.summaryTitle")}</p>
+                <div className="space-y-1.5">
+                  {selectedProposal.splits.map((s, i) => {
+                    const color = AURORA_PALETTE[i % AURORA_PALETTE.length];
+                    return (
+                      <div key={i} className="flex items-center justify-between text-xs">
+                        <span className="flex items-center gap-2 min-w-0">
+                          <span className="inline-block w-2.5 h-2.5 rounded-sm shrink-0" style={{ backgroundColor: color }} aria-hidden="true" />
+                          <span className="truncate text-gray-300">{nameFor(s.user_id)}</span>
+                        </span>
+                        <span className="font-bold text-mono" style={{ color }}>{s.percentage}%</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Legal agreement statement */}
+            <p className="text-xs text-gray-400 leading-relaxed" data-testid="sign-legal-statement">
+              {t("split.sign.legal")}
             </p>
+
+            {/* Legal name input */}
+            <div>
+              <Label className="text-sm mb-2 block">{t("split.sign.label")}</Label>
+              <Input
+                value={signatureName}
+                onChange={(e) => setSignatureName(e.target.value)}
+                placeholder={t("split.sign.placeholder")}
+                className="bg-[#121212] border-white/10 text-white"
+                data-testid="signature-name-input"
+              />
+            </div>
+
+            {/* Live handwritten-style signature preview */}
+            <div
+              className="rounded-sm border border-white/10 bg-[#0f0f0f] px-4 py-5 flex items-center justify-center min-h-[72px]"
+              data-testid="signature-preview"
+            >
+              {signatureName.trim() ? (
+                <span className="signature-font text-3xl" style={{ color: "var(--ep-cyan, #22d3ee)" }}>
+                  /s/ {signatureName.trim()}
+                </span>
+              ) : (
+                <span className="text-xs text-gray-600">{t("split.sign.preview")}</span>
+              )}
+            </div>
+
+            {/* Agree checkbox */}
+            <label className="flex items-start gap-2 cursor-pointer select-none" data-testid="sign-agree-label">
+              <input
+                type="checkbox"
+                checked={agreed}
+                onChange={(e) => setAgreed(e.target.checked)}
+                className="mt-0.5 accent-[#7c5cff]"
+                data-testid="sign-agree-checkbox"
+              />
+              <span className="text-xs text-gray-300">
+                {t("split.sign.consent")} <span className="text-[#7c5cff]">{t("split.sign.consentEs")}</span>
+              </span>
+            </label>
           </div>
+
           <DialogFooter>
             <Button
               variant="outline"
@@ -374,7 +579,8 @@ const SplitPanel = ({ songId, token, user, song }) => {
             </Button>
             <Button
               onClick={handleSign}
-              className="bg-[#7c5cff] text-white hover:bg-[#6a4ef0] font-bold"
+              disabled={!signatureName.trim() || !agreed}
+              className="bg-[#7c5cff] text-white hover:bg-[#6a4ef0] font-bold disabled:opacity-40 disabled:cursor-not-allowed"
               data-testid="confirm-sign-btn"
             >
               {t("split.signDocument")}

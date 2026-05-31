@@ -168,6 +168,7 @@ class Signature(BaseModel):
     user_id: str
     signature_data: str
     signed_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    signature_hash: Optional[str] = None
 
 class Version(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -577,19 +578,56 @@ async def approve_split(proposal_id: str, current_user: User = Depends(get_curre
 
 @api_router.post("/signatures")
 async def create_signature(sig_data: SignatureCreate, current_user: User = Depends(get_current_user)):
-    if not current_user.is_pro:
-        raise HTTPException(status_code=403, detail="Pro plan required")
-    
+    proposal = await db.split_proposals.find_one({"id": sig_data.split_proposal_id})
+    if not proposal:
+        raise HTTPException(status_code=404, detail="Proposal not found")
+
+    # Signing is open to any co-writer of the song (free or pro). The owner needs
+    # Pro to PROPOSE/EXPORT splits, but every collaborator must be able to SIGN.
+    song_for_auth = await db.songs.find_one({"id": proposal["song_id"]})
+    allowed = set((song_for_auth or {}).get("collaborators", []))
+    if song_for_auth and song_for_auth.get("created_by"):
+        allowed.add(song_for_auth["created_by"])
+    if current_user.id not in allowed:
+        raise HTTPException(status_code=403, detail="Only co-writers of this song can sign")
+
     signature = Signature(
         split_proposal_id=sig_data.split_proposal_id,
         user_id=current_user.id,
         signature_data=sig_data.signature_data
     )
-    
+
     sig_dict = signature.model_dump()
     sig_dict["signed_at"] = sig_dict["signed_at"].isoformat()
-    
+
+    # Lightweight tamper-evident audit value: sha256 of the signing context.
+    audit_payload = (
+        f"{sig_dict['split_proposal_id']}|{sig_dict['user_id']}|"
+        f"{sig_dict['signature_data']}|{sig_dict['signed_at']}"
+    )
+    sig_dict["signature_hash"] = hashlib.sha256(audit_payload.encode("utf-8")).hexdigest()
+
     await db.signatures.insert_one(sig_dict)
+
+    # Gating rule: a split locks only when EVERY co-writer has signed it.
+    song = await db.songs.find_one({"id": proposal["song_id"]})
+    if song:
+        collaborators = set(song.get("collaborators", []))
+        if song.get("created_by"):
+            collaborators.add(song["created_by"])
+        signed_user_ids = set(
+            await db.signatures.distinct(
+                "user_id", {"split_proposal_id": sig_data.split_proposal_id}
+            )
+        )
+        if collaborators and collaborators.issubset(signed_user_ids):
+            await db.split_proposals.update_one(
+                {"id": sig_data.split_proposal_id}, {"$set": {"status": "signed"}}
+            )
+            await db.songs.update_one(
+                {"id": proposal["song_id"]}, {"$set": {"is_locked": True}}
+            )
+
     return signature
 
 @api_router.get("/signatures/{proposal_id}")
