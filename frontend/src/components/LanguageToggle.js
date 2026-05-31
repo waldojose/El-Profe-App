@@ -1,18 +1,33 @@
 import { motion } from "framer-motion";
+import { useLocation } from "react-router-dom";
 import { useI18n } from "../i18n/I18nProvider";
 
-// Always-visible EN/ES pill. Fixed bottom-left so it shows on every screen.
-export default function LanguageToggle() {
+// EN/ES pill. Two modes:
+//  - inline (default false): a fixed floating toggle, top-right, for pages that
+//    don't embed it. Hidden on routes that render their own inline toggle.
+//  - inline=true: a static pill meant to live inside a nav/topbar.
+export default function LanguageToggle({ inline = false }) {
   const { lang, setLang } = useI18n();
+  const location = useLocation();
   const langs = ["en", "es"];
+
+  // The landing nav and the dashboard topbar embed their own inline toggle,
+  // so the floating one stays out of their way.
+  if (!inline && (location.pathname === "/" || location.pathname.startsWith("/dashboard"))) {
+    return null;
+  }
+
+  const wrapClass = inline
+    ? "inline-flex items-center gap-1 rounded-full p-1"
+    : "fixed top-3 right-4 z-[70] flex items-center gap-1 rounded-full p-1 backdrop-blur";
 
   return (
     <div
-      className="fixed bottom-5 left-5 z-[60] flex items-center gap-1 rounded-full p-1 backdrop-blur"
+      className={wrapClass}
       style={{
         background: "rgba(16,14,28,0.8)",
         border: "1px solid rgba(157,123,255,0.35)",
-        boxShadow: "0 6px 24px rgba(124,92,255,0.25)",
+        boxShadow: inline ? "none" : "0 6px 24px rgba(124,92,255,0.25)",
       }}
       data-testid="language-toggle"
     >

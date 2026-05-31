@@ -6,6 +6,7 @@ import {
   Languages, PenTool, Scale, Check, X, ChevronRight
 } from "lucide-react";
 import { useI18n } from "../i18n/I18nProvider";
+import LanguageToggle from "../components/LanguageToggle";
 
 const LOGO_URL =
   "/logo-white.png";
@@ -154,6 +155,7 @@ const Landing = () => {
           <div className="flex gap-3 items-center">
             <button onClick={goLogin} className="btn-secondary text-sm py-2 px-4" data-testid="nav-login-btn">{t("nav.login")}</button>
             <button onClick={goSignup} className="btn-primary text-sm py-2 px-4" data-testid="nav-signup-btn">{t("nav.start")}</button>
+            <LanguageToggle inline />
           </div>
         </div>
       </motion.nav>

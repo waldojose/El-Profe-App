@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useI18n } from "../i18n/I18nProvider";
+import LanguageToggle from "../components/LanguageToggle";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -420,6 +421,7 @@ const Dashboard = ({ token, logout, user, setUser }) => {
               <button onClick={logout} className="ep-icon-btn" title={t("dash.logout")} data-testid="logout-btn">
                 <LogOut size={18} />
               </button>
+              <LanguageToggle inline />
             </div>
           </div>
 

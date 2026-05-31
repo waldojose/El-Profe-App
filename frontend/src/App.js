@@ -44,9 +44,8 @@ function App() {
         )}
       </AnimatePresence>
 
-      <LanguageToggle />
-
       <BrowserRouter>
+        <LanguageToggle />
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/auth" element={<Auth setToken={setToken} setUser={setUser} />} />
