@@ -39,7 +39,12 @@ db = client[os.environ['DB_NAME']]
 # Security
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
-JWT_SECRET = os.environ.get('JWT_SECRET', 'professor-app-secret-key-change-in-production')
+# JWT secret must be supplied via env. Refuse to boot with a missing or known-weak
+# secret so tokens can never be forged with a default key. Local .env and Render set this.
+_WEAK_JWT_SECRET = 'professor-app-secret-key-change-in-production'
+JWT_SECRET = os.environ.get('JWT_SECRET')
+if not JWT_SECRET or JWT_SECRET == _WEAK_JWT_SECRET:
+    raise RuntimeError("JWT_SECRET env var is required")
 JWT_ALGORITHM = "HS256"
 
 # Stripe configuration (read from env, never hardcode secrets).
@@ -266,6 +271,73 @@ def create_access_token(data: dict) -> str:
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
+async def _require_song_access(song_id: str, user: "User") -> dict:
+    """Authorization gate for per-song data (lyrics, splits, signatures, etc.).
+
+    Loads the song and raises 404 if it is missing, 403 unless `user` is the
+    song's creator OR a listed collaborator. Returns the song doc on success so
+    callers can reuse it. This is the IDOR fix: every per-song GET/mutation must
+    pass through here instead of trusting the {id} in the URL.
+    """
+    song = await db.songs.find_one({"id": song_id})
+    if not song:
+        raise HTTPException(status_code=404, detail="Song not found")
+    allowed = set(song.get("collaborators", []))
+    if song.get("created_by"):
+        allowed.add(song["created_by"])
+    if user.id not in allowed:
+        raise HTTPException(status_code=403, detail="Not authorized for this song")
+    return song
+
+
+async def _require_proposal_song_access(proposal_id: str, user: "User") -> dict:
+    """Resolve a split proposal -> its song, then enforce song access.
+
+    Raises 404 if the proposal (or its song) is missing, 403 if unauthorized.
+    Returns the proposal doc on success.
+    """
+    proposal = await db.split_proposals.find_one({"id": proposal_id})
+    if not proposal:
+        raise HTTPException(status_code=404, detail="Proposal not found")
+    await _require_song_access(proposal["song_id"], user)
+    return proposal
+
+
+# --- Lightweight in-memory auth rate limiter ------------------------------
+# Sliding window keyed by client IP. NOTE: per-process only (fine for a single
+# instance / Render free tier). If this is ever scaled to multiple workers or
+# instances, move this state to Redis so the window is shared.
+_RATE_LIMIT_MAX = 8           # attempts allowed
+_RATE_LIMIT_WINDOW = 60.0     # seconds
+_rate_limit_hits: Dict[str, List[float]] = {}
+
+
+def _client_ip(request: Request) -> str:
+    """Resolve the caller IP, honoring X-Forwarded-For (Render is behind a proxy)."""
+    fwd = request.headers.get("x-forwarded-for")
+    if fwd:
+        return fwd.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
+def _enforce_auth_rate_limit(request: Request) -> None:
+    """Raise 429 if this IP exceeded the auth attempt budget in the window."""
+    import time
+    now = time.monotonic()
+    ip = _client_ip(request)
+    hits = [t for t in _rate_limit_hits.get(ip, []) if now - t < _RATE_LIMIT_WINDOW]
+    # Prune empty/stale buckets to bound memory growth.
+    for key in [k for k, v in _rate_limit_hits.items()
+                if not any(now - t < _RATE_LIMIT_WINDOW for t in v)]:
+        if key != ip:
+            _rate_limit_hits.pop(key, None)
+    if len(hits) >= _RATE_LIMIT_MAX:
+        _rate_limit_hits[ip] = hits
+        raise HTTPException(status_code=429, detail="Too many attempts, try again later")
+    hits.append(now)
+    _rate_limit_hits[ip] = hits
+
+
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     try:
         payload = jwt.decode(credentials.credentials, JWT_SECRET, algorithms=[JWT_ALGORITHM])
@@ -283,7 +355,8 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 
 # Auth endpoints
 @api_router.post("/auth/register")
-async def register(user_data: UserRegister, referral_code: Optional[str] = None):
+async def register(request: Request, user_data: UserRegister, referral_code: Optional[str] = None):
+    _enforce_auth_rate_limit(request)
     existing_user = await db.users.find_one({"email": user_data.email})
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -319,7 +392,8 @@ async def register(user_data: UserRegister, referral_code: Optional[str] = None)
     }
 
 @api_router.post("/auth/login")
-async def login(credentials: UserLogin):
+async def login(request: Request, credentials: UserLogin):
+    _enforce_auth_rate_limit(request)
     user_doc = await db.users.find_one({"email": credentials.email})
     if not user_doc:
         raise HTTPException(status_code=401, detail="Invalid credentials")
@@ -513,6 +587,7 @@ async def get_collaborators(song_id: str, current_user: User = Depends(get_curre
 # Contribution tracking
 @api_router.post("/contributions")
 async def log_contribution(log_data: Dict[str, Any], current_user: User = Depends(get_current_user)):
+    await _require_song_access(log_data["song_id"], current_user)
     contribution = ContributionLog(
         song_id=log_data["song_id"],
         user_id=current_user.id,
@@ -531,6 +606,7 @@ async def log_contribution(log_data: Dict[str, Any], current_user: User = Depend
 
 @api_router.get("/contributions/{song_id}")
 async def get_contributions(song_id: str, current_user: User = Depends(get_current_user)):
+    await _require_song_access(song_id, current_user)
     contributions = await db.contributions.find({"song_id": song_id}, {"_id": 0}).to_list(10000)
     
     stats = {}
@@ -562,10 +638,8 @@ async def create_split(split_data: SplitCreate, current_user: User = Depends(get
     if not current_user.is_pro:
         raise HTTPException(status_code=403, detail="Pro plan required for split management")
     
-    song = await db.songs.find_one({"id": split_data.song_id})
-    if not song:
-        raise HTTPException(status_code=404, detail="Song not found")
-    
+    song = await _require_song_access(split_data.song_id, current_user)
+
     latest_version = await db.split_proposals.find_one(
         {"song_id": split_data.song_id},
         sort=[("version", -1)]
@@ -588,6 +662,7 @@ async def create_split(split_data: SplitCreate, current_user: User = Depends(get
 
 @api_router.get("/splits/{song_id}")
 async def get_splits(song_id: str, current_user: User = Depends(get_current_user)):
+    await _require_song_access(song_id, current_user)
     splits = await db.split_proposals.find({"song_id": song_id}, {"_id": 0}).sort("version", -1).to_list(1000)
     
     for split in splits:
@@ -601,10 +676,8 @@ async def approve_split(proposal_id: str, current_user: User = Depends(get_curre
     if not current_user.is_pro:
         raise HTTPException(status_code=403, detail="Pro plan required")
     
-    proposal = await db.split_proposals.find_one({"id": proposal_id})
-    if not proposal:
-        raise HTTPException(status_code=404, detail="Proposal not found")
-    
+    proposal = await _require_proposal_song_access(proposal_id, current_user)
+
     await db.split_proposals.update_one({"id": proposal_id}, {"$set": {"status": "approved"}})
     return {"message": "Split approved"}
 
@@ -664,6 +737,7 @@ async def create_signature(sig_data: SignatureCreate, current_user: User = Depen
 
 @api_router.get("/signatures/{proposal_id}")
 async def get_signatures(proposal_id: str, current_user: User = Depends(get_current_user)):
+    await _require_proposal_song_access(proposal_id, current_user)
     signatures = await db.signatures.find({"split_proposal_id": proposal_id}, {"_id": 0}).to_list(1000)
     
     for sig in signatures:
@@ -675,6 +749,7 @@ async def get_signatures(proposal_id: str, current_user: User = Depends(get_curr
 # Versions
 @api_router.post("/versions")
 async def create_version(version_data: Dict[str, Any], current_user: User = Depends(get_current_user)):
+    await _require_song_access(version_data["song_id"], current_user)
     version = Version(
         song_id=version_data["song_id"],
         content=version_data["content"],
@@ -689,6 +764,7 @@ async def create_version(version_data: Dict[str, Any], current_user: User = Depe
 
 @api_router.get("/versions/{song_id}")
 async def get_versions(song_id: str, current_user: User = Depends(get_current_user)):
+    await _require_song_access(song_id, current_user)
     versions = await db.versions.find({"song_id": song_id}, {"_id": 0}).sort("created_at", -1).to_list(1000)
     
     for version in versions:
@@ -1228,7 +1304,11 @@ async def export_split_sheet(proposal_id: str, current_user: User = Depends(get_
     proposal = await db.split_proposals.find_one({"id": proposal_id}, {"_id": 0})
     if not proposal:
         raise HTTPException(status_code=404, detail="Proposal not found")
-    
+
+    # IDOR gate: only the song's creator/collaborators may export the legal PDF
+    # (contains lyrics, legal names, PRO data, and signatures).
+    await _require_song_access(proposal["song_id"], current_user)
+
     song = await db.songs.find_one({"id": proposal["song_id"]}, {"_id": 0})
     signatures = await db.signatures.find({"split_proposal_id": proposal_id}, {"_id": 0}).to_list(1000)
     
@@ -1491,10 +1571,23 @@ async def websocket_endpoint(websocket: WebSocket, song_id: str):
 
 app.include_router(api_router)
 
+# CORS: the app authenticates with a Bearer header (no cookies), so when origins
+# are unrestricted we use the wildcard WITHOUT credentials (the only valid combo;
+# "*" + allow_credentials=True is rejected by browsers anyway). When explicit
+# origins are configured we echo them back and allow credentials.
+_cors_raw = os.environ.get('CORS_ORIGINS', '*').strip()
+_cors_origins = [o.strip() for o in _cors_raw.split(',') if o.strip()]
+if not _cors_origins or _cors_raw == '*':
+    _allow_origins = ["*"]
+    _allow_credentials = False
+else:
+    _allow_origins = _cors_origins
+    _allow_credentials = True
+
 app.add_middleware(
     CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_credentials=_allow_credentials,
+    allow_origins=_allow_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
