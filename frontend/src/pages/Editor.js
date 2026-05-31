@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "sonner";
@@ -22,6 +22,14 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 const WS_URL = BACKEND_URL.replace('https://', 'wss://').replace('http://', 'ws://');
 
+// Strip surrounding punctuation and lowercase, matching the prototype's
+// `data-word="${w.toLowerCase()}"` so dictionary lookups stay consistent.
+const cleanWord = (raw) =>
+  (raw || "")
+    .replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, "")
+    .toLowerCase()
+    .trim();
+
 const Editor = ({ token, user }) => {
   const { t } = useI18n();
   const { songId } = useParams();
@@ -33,6 +41,7 @@ const Editor = ({ token, user }) => {
   const socketRef = useRef(null);
   const [collaborators, setCollaborators] = useState([]);
   const [selectedWord, setSelectedWord] = useState("");
+  const [rightTab, setRightTab] = useState("synonyms");
   const [showAddCollaborator, setShowAddCollaborator] = useState(false);
   const [collaboratorEmail, setCollaboratorEmail] = useState("");
   const [versionsRefreshKey, setVersionsRefreshKey] = useState(0);
@@ -154,13 +163,40 @@ const Editor = ({ token, user }) => {
     }
   };
 
-  const handleWordSelection = () => {
+  // Resolve the word the user clicked/tapped. Works for a plain click (caret
+  // lands inside the word) and double-click (browser selects the word). We read
+  // the caret's text node + offset and expand to the surrounding word boundaries
+  // instead of relying on a drag-selection (which a single click never produces).
+  const selectWordFromCaret = useCallback(() => {
     const selection = window.getSelection();
-    const word = selection.toString().trim();
-    if (word && word.split(' ').length === 1) {
-      setSelectedWord(word);
+    if (!selection || selection.rangeCount === 0) return;
+
+    // If the user actually selected a single word, use it directly.
+    const selected = selection.toString().trim();
+    if (selected && !/\s/.test(selected)) {
+      setSelectedWord(cleanWord(selected));
+      setRightTab("synonyms");
+      return;
     }
-  };
+
+    const node = selection.anchorNode;
+    if (!node || node.nodeType !== Node.TEXT_NODE) return;
+    const text = node.textContent || "";
+    const offset = selection.anchorOffset;
+
+    // Walk left/right from the caret to the nearest non-word characters.
+    const isWordChar = (ch) => /[\p{L}\p{N}'’-]/u.test(ch);
+    let start = offset;
+    let end = offset;
+    while (start > 0 && isWordChar(text[start - 1])) start -= 1;
+    while (end < text.length && isWordChar(text[end])) end += 1;
+
+    const word = cleanWord(text.slice(start, end));
+    if (word) {
+      setSelectedWord(word);
+      setRightTab("synonyms"); // mirror the prototype: open the Dictionary tab
+    }
+  }, []);
 
   const handleAddCollaborator = async () => {
     if (!collaboratorEmail.trim()) {
@@ -257,10 +293,15 @@ const Editor = ({ token, user }) => {
               <span className="text-xs text-gray-500 text-mono">{content.length} {t("editor.characters")}</span>
             </div>
             
+            <p className="text-xs text-gray-500 mb-3" data-testid="tap-word-hint">
+              {t("editor.tapWordHint")}
+            </p>
+
             <ContentEditable
               html={content}
               onChange={handleContentChange}
-              onMouseUp={handleWordSelection}
+              onMouseUp={selectWordFromCaret}
+              onDoubleClick={selectWordFromCaret}
               className="editable-lyrics"
               data-testid="lyrics-editor"
               disabled={song?.is_locked}
@@ -277,7 +318,7 @@ const Editor = ({ token, user }) => {
 
         {/* Right Sidebar - Tools & Data */}
         <div className="col-span-3 overflow-y-auto scroll-fade">
-          <Tabs defaultValue="synonyms" className="w-full">
+          <Tabs value={rightTab} onValueChange={setRightTab} className="w-full">
             <TabsList className="grid w-full grid-cols-4 bg-[#0A0A0A] border border-white/10 mb-4">
               <TabsTrigger value="synonyms" data-testid="tab-synonyms">
                 {t("editor.tabTools")}
