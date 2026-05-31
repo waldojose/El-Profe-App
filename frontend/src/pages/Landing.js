@@ -8,7 +8,7 @@ import {
 import { useI18n } from "../i18n/I18nProvider";
 
 const LOGO_URL =
-  "https://customer-assets.emergentagent.com/job_elprofe-app/artifacts/vq8mu8b5_A_digital_vector_graphic_features_the_logo_for__Pr.png";
+  "/logo-white.png";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },

@@ -16,7 +16,7 @@ const Auth = ({ setToken, setUser }) => {
   const [mode, setMode] = useState(searchParams.get("mode") === "signup" ? "signup" : "login");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const logoUrl = "https://customer-assets.emergentagent.com/job_elprofe-app/artifacts/vq8mu8b5_A_digital_vector_graphic_features_the_logo_for__Pr.png";
+  const logoUrl = "/logo-white.png";
   
   const [formData, setFormData] = useState({
     email: "",

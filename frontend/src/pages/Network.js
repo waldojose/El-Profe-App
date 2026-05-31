@@ -25,7 +25,7 @@ const Network = ({ token, user }) => {
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [message, setMessage] = useState("");
-  const logoUrl = "https://customer-assets.emergentagent.com/job_elprofe-app/artifacts/vq8mu8b5_A_digital_vector_graphic_features_the_logo_for__Pr.png";
+  const logoUrl = "/logo-white.png";
 
   useEffect(() => {
     fetchUsers();

@@ -24,7 +24,7 @@ const Dashboard = ({ token, logout, user, setUser }) => {
   const [showNewSongModal, setShowNewSongModal] = useState(false);
   const [newSongTitle, setNewSongTitle] = useState("");
   const [currentUser, setCurrentUser] = useState(user);
-  const logoUrl = "https://customer-assets.emergentagent.com/job_elprofe-app/artifacts/vq8mu8b5_A_digital_vector_graphic_features_the_logo_for__Pr.png";
+  const logoUrl = "/logo-white.png";
 
   useEffect(() => {
     fetchUserAndSongs();

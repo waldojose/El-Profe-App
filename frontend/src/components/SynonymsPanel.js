@@ -49,7 +49,6 @@ const SynonymsPanel = ({ selectedWord, token }) => {
       setWord(selectedWord);
       fetchTab(selectedWord, activeTab);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedWord]);
 
   const handleSearch = (e) => {
