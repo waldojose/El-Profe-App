@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, WebSocket, WebSocketDisconnect, HTTPException, Depends, status
+from fastapi import FastAPI, APIRouter, WebSocket, WebSocketDisconnect, HTTPException, Depends, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
@@ -41,6 +41,36 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
 JWT_SECRET = os.environ.get('JWT_SECRET', 'professor-app-secret-key-change-in-production')
 JWT_ALGORITHM = "HS256"
+
+# Stripe configuration (read from env, never hardcode secrets).
+# Endpoints guard on STRIPE_SECRET_KEY so the app boots fine without Stripe set up.
+STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', '').strip()
+STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '').strip()
+STRIPE_PRICE_ID = os.environ.get('STRIPE_PRICE_ID', '').strip()
+PUBLIC_BASE_URL = os.environ.get('PUBLIC_BASE_URL', '').strip()
+
+
+def _get_stripe():
+    """Lazily import + configure the stripe SDK. Returns None if not configured."""
+    if not STRIPE_SECRET_KEY:
+        return None
+    try:
+        import stripe  # imported lazily so a missing package never crashes startup
+    except ImportError:
+        return None
+    stripe.api_key = STRIPE_SECRET_KEY
+    return stripe
+
+
+def _base_url(request) -> str:
+    """Resolve the public base URL for redirect targets."""
+    if PUBLIC_BASE_URL:
+        return PUBLIC_BASE_URL.rstrip('/')
+    origin = request.headers.get('origin')
+    if origin:
+        return origin.rstrip('/')
+    return 'http://localhost:3000'
+
 
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
@@ -111,6 +141,8 @@ class User(BaseModel):
     referral_code: Optional[str] = None
     referred_by: Optional[str] = None
     credits: int = 0
+    stripe_customer_id: Optional[str] = None
+    stripe_subscription_id: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class Song(BaseModel):
@@ -758,28 +790,165 @@ async def dict_rhymes(word: str, lang: str | None = None):
 async def dict_translate(word: str, lang: str | None = None):
     return await _lookup("translate", word, lang)
 
-# Subscription
-@api_router.post("/subscription/upgrade")
-async def upgrade_to_pro(current_user: User = Depends(get_current_user)):
-    await db.users.update_one({"id": current_user.id}, {"$set": {"is_pro": True}})
-    
-    # Give credits to referrer if user was referred
-    if current_user.referred_by:
+# ---------------------------------------------------------------------------
+# Payments — real Stripe Checkout + Customer Portal + webhook
+# ---------------------------------------------------------------------------
+STRIPE_NOT_CONFIGURED = "Stripe not configured"
+
+
+async def _grant_pro(user_doc: dict, subscription_id: Optional[str] = None):
+    """Mark a user Pro and award referral credits exactly once. Idempotent."""
+    update = {"is_pro": True}
+    if subscription_id:
+        update["stripe_subscription_id"] = subscription_id
+    await db.users.update_one({"id": user_doc["id"]}, {"$set": update})
+
+    already_pro = user_doc.get("is_pro", False)
+    referred_by = user_doc.get("referred_by")
+    # Only award the referral credit on the transition into Pro (avoid double-paying).
+    if referred_by and not already_pro:
         await db.users.update_one(
-            {"id": current_user.referred_by},
-            {"$inc": {"credits": 10}}  # Give 10 credits for Pro upgrade
+            {"id": referred_by}, {"$inc": {"credits": 10}}
         )
-        
-        # Log the credit transaction
         await db.credit_transactions.insert_one({
             "id": str(uuid.uuid4()),
-            "user_id": current_user.referred_by,
+            "user_id": referred_by,
             "amount": 10,
-            "reason": f"Referral upgrade: {current_user.artist_name or current_user.email}",
-            "created_at": datetime.now(timezone.utc).isoformat()
+            "reason": f"Referral upgrade: {user_doc.get('artist_name') or user_doc.get('email')}",
+            "created_at": datetime.now(timezone.utc).isoformat(),
         })
-    
-    return {"message": "Upgraded to Pro", "is_pro": True}
+
+
+@api_router.post("/payments/create-checkout-session")
+async def create_checkout_session(request: Request, current_user: User = Depends(get_current_user)):
+    stripe = _get_stripe()
+    if stripe is None:
+        raise HTTPException(status_code=503, detail=STRIPE_NOT_CONFIGURED)
+    if not STRIPE_PRICE_ID:
+        raise HTTPException(status_code=503, detail=STRIPE_NOT_CONFIGURED)
+
+    # Create or reuse the Stripe Customer for this user.
+    customer_id = current_user.stripe_customer_id
+    try:
+        if not customer_id:
+            customer = stripe.Customer.create(
+                email=current_user.email,
+                name=current_user.artist_name or current_user.legal_name or current_user.email,
+                metadata={"user_id": current_user.id},
+            )
+            customer_id = customer.id
+            await db.users.update_one(
+                {"id": current_user.id}, {"$set": {"stripe_customer_id": customer_id}}
+            )
+
+        base = _base_url(request)
+        session = stripe.checkout.Session.create(
+            mode="subscription",
+            customer=customer_id,
+            line_items=[{"price": STRIPE_PRICE_ID, "quantity": 1}],
+            client_reference_id=current_user.id,
+            metadata={"user_id": current_user.id},
+            subscription_data={"metadata": {"user_id": current_user.id}},
+            success_url=f"{base}/payment-success?session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url=f"{base}/dashboard",
+        )
+        return {"url": session.url}
+    except Exception as e:  # noqa: BLE001 - surface Stripe errors as 502
+        logging.getLogger(__name__).error("Stripe checkout error: %s", e)
+        raise HTTPException(status_code=502, detail="Could not create checkout session")
+
+
+@api_router.post("/payments/portal")
+async def create_portal_session(request: Request, current_user: User = Depends(get_current_user)):
+    stripe = _get_stripe()
+    if stripe is None:
+        raise HTTPException(status_code=503, detail=STRIPE_NOT_CONFIGURED)
+    if not current_user.stripe_customer_id:
+        raise HTTPException(status_code=400, detail="No Stripe customer for this user")
+    try:
+        base = _base_url(request)
+        session = stripe.billing_portal.Session.create(
+            customer=current_user.stripe_customer_id,
+            return_url=f"{base}/dashboard",
+        )
+        return {"url": session.url}
+    except Exception as e:  # noqa: BLE001
+        logging.getLogger(__name__).error("Stripe portal error: %s", e)
+        raise HTTPException(status_code=502, detail="Could not create portal session")
+
+
+@api_router.post("/payments/webhook")
+async def stripe_webhook(request: Request):
+    """Stripe webhook. NO auth — verified via signature. Needs the RAW body."""
+    stripe = _get_stripe()
+    if stripe is None:
+        raise HTTPException(status_code=503, detail=STRIPE_NOT_CONFIGURED)
+
+    payload = await request.body()
+    sig_header = request.headers.get("stripe-signature")
+    log = logging.getLogger(__name__)
+
+    if STRIPE_WEBHOOK_SECRET:
+        try:
+            event = stripe.Webhook.construct_event(payload, sig_header, STRIPE_WEBHOOK_SECRET)
+        except Exception as e:  # noqa: BLE001 - bad signature / malformed payload
+            log.warning("Stripe webhook signature verification failed: %s", e)
+            raise HTTPException(status_code=400, detail="Invalid signature")
+    else:
+        # No signing secret set: still parse but do not trust unsigned events.
+        log.warning("STRIPE_WEBHOOK_SECRET not set; rejecting webhook")
+        raise HTTPException(status_code=503, detail=STRIPE_NOT_CONFIGURED)
+
+    etype = event["type"]
+    obj = event["data"]["object"]
+
+    async def _find_user(o: dict) -> Optional[dict]:
+        # Prefer explicit references, fall back to the Stripe customer id.
+        uid = o.get("client_reference_id") or (o.get("metadata") or {}).get("user_id")
+        if uid:
+            u = await db.users.find_one({"id": uid}, {"_id": 0})
+            if u:
+                return u
+        cust = o.get("customer")
+        if cust:
+            return await db.users.find_one({"stripe_customer_id": cust}, {"_id": 0})
+        return None
+
+    try:
+        if etype in ("checkout.session.completed", "customer.subscription.created", "customer.subscription.updated"):
+            user_doc = await _find_user(obj)
+            if user_doc:
+                sub_id = obj.get("subscription") if etype == "checkout.session.completed" else obj.get("id")
+                # For subscription.updated, only grant Pro when the sub is active/trialing.
+                status_ok = True
+                if etype == "customer.subscription.updated":
+                    status_ok = obj.get("status") in ("active", "trialing", "past_due")
+                if status_ok:
+                    await _grant_pro(user_doc, sub_id)
+                else:
+                    await db.users.update_one({"id": user_doc["id"]}, {"$set": {"is_pro": False}})
+            else:
+                log.warning("Stripe webhook %s: no matching user", etype)
+        elif etype == "customer.subscription.deleted":
+            user_doc = await _find_user(obj)
+            if user_doc:
+                await db.users.update_one(
+                    {"id": user_doc["id"]}, {"$set": {"is_pro": False, "stripe_subscription_id": None}}
+                )
+    except Exception as e:  # noqa: BLE001 - never 500 the webhook
+        log.error("Stripe webhook handler error (%s): %s", etype, e)
+
+    # Always 200 quickly so Stripe stops retrying.
+    return {"received": True}
+
+
+# Deprecated mock endpoint — the free is_pro flip is removed. Points to the real flow.
+@api_router.post("/subscription/upgrade", status_code=410)
+async def upgrade_to_pro_deprecated():
+    raise HTTPException(
+        status_code=410,
+        detail="This endpoint is deprecated. Use POST /api/payments/create-checkout-session.",
+    )
 
 # Social Network - Discover Users
 @api_router.get("/users/discover")

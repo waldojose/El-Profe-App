@@ -279,6 +279,13 @@ export const internal = {
     "dict.tab.antonyms": "Antonyms",
     "dict.tab.rhymes": "Rhymes",
     "dict.tab.translate": "Translate",
+    // Payments (Stripe)
+    "pay.notConfigured": "Payments not configured yet",
+    "pay.portalFailed": "Could not open the billing portal",
+    "pay.manageSubscription": "Manage subscription",
+    "pay.successTitle": "You're Pro now",
+    "pay.successSubtitle": "Your subscription is active. Enjoy unlimited songs, splits, signatures, and legal exports.",
+    "pay.successCta": "Go to dashboard",
   },
   es: {
     // Auth
@@ -557,5 +564,12 @@ export const internal = {
     "dict.tab.antonyms": "Antónimos",
     "dict.tab.rhymes": "Rimas",
     "dict.tab.translate": "Traducir",
+    // Pagos (Stripe)
+    "pay.notConfigured": "Los pagos aún no están configurados",
+    "pay.portalFailed": "No se pudo abrir el portal de facturación",
+    "pay.manageSubscription": "Gestionar suscripción",
+    "pay.successTitle": "Ya eres Pro",
+    "pay.successSubtitle": "Tu suscripción está activa. Disfruta canciones ilimitadas, splits, firmas y exportaciones legales.",
+    "pay.successCta": "Ir al panel",
   },
 };

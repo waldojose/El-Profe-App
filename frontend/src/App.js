@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import Editor from "./pages/Editor";
 import Network from "./pages/Network";
 import Messages from "./pages/Messages";
+import PaymentSuccess from "./pages/PaymentSuccess";
 import SplashScreen from "./components/SplashScreen";
 import LanguageToggle from "./components/LanguageToggle";
 import { I18nProvider } from "./i18n/I18nProvider";
@@ -64,6 +65,10 @@ function App() {
           <Route
             path="/messages"
             element={token ? <Messages token={token} user={user} /> : <Navigate to="/auth" />}
+          />
+          <Route
+            path="/payment-success"
+            element={token ? <PaymentSuccess token={token} setUser={setUser} /> : <Navigate to="/auth" />}
           />
         </Routes>
       </BrowserRouter>

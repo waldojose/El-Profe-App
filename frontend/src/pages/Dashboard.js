@@ -196,11 +196,35 @@ const Dashboard = ({ token, logout, user, setUser }) => {
 
   const handleUpgradeToPro = async () => {
     try {
-      await axios.post(`${API}/subscription/upgrade`, {}, authHeader);
-      toast.success(t("dash.upgradedToPro"));
-      setCurrentUser((u) => ({ ...u, is_pro: true }));
-    } catch (error) {
+      const { data } = await axios.post(`${API}/payments/create-checkout-session`, {}, authHeader);
+      if (data?.url) {
+        window.location.assign(data.url);
+        return;
+      }
       toast.error(t("dash.upgradeFailed"));
+    } catch (error) {
+      if (error.response?.status === 503) {
+        toast.error(t("pay.notConfigured"));
+      } else {
+        toast.error(t("dash.upgradeFailed"));
+      }
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    try {
+      const { data } = await axios.post(`${API}/payments/portal`, {}, authHeader);
+      if (data?.url) {
+        window.location.assign(data.url);
+        return;
+      }
+      toast.error(t("pay.portalFailed"));
+    } catch (error) {
+      if (error.response?.status === 503) {
+        toast.error(t("pay.notConfigured"));
+      } else {
+        toast.error(t("pay.portalFailed"));
+      }
     }
   };
 
@@ -366,7 +390,7 @@ const Dashboard = ({ token, logout, user, setUser }) => {
               >
                 <Bell size={18} />
               </button>
-              {!currentUser?.is_pro && (
+              {!currentUser?.is_pro ? (
                 <button
                   onClick={handleUpgradeToPro}
                   className="btn-primary text-sm flex items-center gap-2"
@@ -374,6 +398,15 @@ const Dashboard = ({ token, logout, user, setUser }) => {
                 >
                   <Crown size={16} />
                   {t("dash.upgradeToPro")}
+                </button>
+              ) : (
+                <button
+                  onClick={handleManageSubscription}
+                  className="ep-btn-ghost text-sm flex items-center gap-2"
+                  data-testid="manage-subscription-btn"
+                >
+                  <Crown size={16} />
+                  {t("pay.manageSubscription")}
                 </button>
               )}
               <button
