@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "sonner";
@@ -41,6 +41,12 @@ const Editor = ({ token, user }) => {
   const socketRef = useRef(null);
   const [collaborators, setCollaborators] = useState([]);
   const [selectedWord, setSelectedWord] = useState("");
+  // Original (display) form of the currently marked word, so the .selected box
+  // lands on the exact token the user clicked even if it repeats elsewhere.
+  const [selectedKey, setSelectedKey] = useState("");
+  // "edit" = ContentEditable (typing/saving); "select" = read-only clickable
+  // word spans with a persistent violet selection box (mirrors the prototype).
+  const [lyricsMode, setLyricsMode] = useState("select");
   const [rightTab, setRightTab] = useState("synonyms");
   const [showAddCollaborator, setShowAddCollaborator] = useState(false);
   const [collaboratorEmail, setCollaboratorEmail] = useState("");
@@ -194,9 +200,47 @@ const Editor = ({ token, user }) => {
     const word = cleanWord(text.slice(start, end));
     if (word) {
       setSelectedWord(word);
+      setSelectedKey("");
       setRightTab("synonyms"); // mirror the prototype: open the Dictionary tab
     }
   }, []);
+
+  // Click a rendered word span (select mode). Mark it (one at a time) by its
+  // unique key, set the cleaned lookup word, and open the Dictionary tab —
+  // mirroring the prototype's `.word` click -> openSyn(dataset.word).
+  const handleWordClick = useCallback((cleaned, key) => {
+    if (!cleaned) return;
+    setSelectedWord(cleaned);
+    setSelectedKey(key);
+    setRightTab("synonyms");
+  }, []);
+
+  // Build a line/word model from the (HTML) content for select mode. We decode
+  // the HTML to plain text first, then tokenize each line preserving the
+  // original spacing/punctuation for display while cleaning for the lookup key.
+  const lyricLines = useMemo(() => {
+    const div = document.createElement("div");
+    // Normalize block breaks so each visual line becomes a newline.
+    div.innerHTML = (content || "")
+      .replace(/<div><br\s*\/?><\/div>/gi, "\n")
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<\/(div|p)>/gi, "\n")
+      .replace(/<[^>]+>/g, "");
+    const text = div.textContent || "";
+    return text.split("\n").map((line, lineIdx) => {
+      // Split keeping the whitespace separators so we can render them back.
+      const tokens = line.split(/(\s+)/);
+      return {
+        key: `l${lineIdx}`,
+        tokens: tokens.map((tok, tokIdx) => ({
+          key: `l${lineIdx}t${tokIdx}`,
+          raw: tok,
+          isSpace: /^\s+$/.test(tok) || tok === "",
+          cleaned: cleanWord(tok),
+        })),
+      };
+    });
+  }, [content]);
 
   const handleAddCollaborator = async () => {
     if (!collaboratorEmail.trim()) {
@@ -290,22 +334,67 @@ const Editor = ({ token, user }) => {
           <div className="backdrop-studio p-6 rounded-sm h-full">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-heading text-2xl font-bold">{t("editor.lyrics")}</h2>
-              <span className="text-xs text-gray-500 text-mono">{content.length} {t("editor.characters")}</span>
+              <div className="flex items-center gap-3">
+                <div className="lyrics-mode-toggle" data-testid="lyrics-mode-toggle">
+                  <button
+                    type="button"
+                    className={lyricsMode === "select" ? "active" : ""}
+                    onClick={() => setLyricsMode("select")}
+                    data-testid="lyrics-mode-select"
+                  >
+                    {t("editor.modeSelect")}
+                  </button>
+                  <button
+                    type="button"
+                    className={lyricsMode === "edit" ? "active" : ""}
+                    onClick={() => setLyricsMode("edit")}
+                    data-testid="lyrics-mode-edit"
+                  >
+                    {t("editor.modeEdit")}
+                  </button>
+                </div>
+                <span className="text-xs text-gray-500 text-mono">{content.length} {t("editor.characters")}</span>
+              </div>
             </div>
-            
+
             <p className="text-xs text-gray-500 mb-3" data-testid="tap-word-hint">
               {t("editor.tapWordHint")}
             </p>
 
-            <ContentEditable
-              html={content}
-              onChange={handleContentChange}
-              onMouseUp={selectWordFromCaret}
-              onDoubleClick={selectWordFromCaret}
-              className="editable-lyrics"
-              data-testid="lyrics-editor"
-              disabled={song?.is_locked}
-            />
+            {lyricsMode === "edit" ? (
+              <ContentEditable
+                html={content}
+                onChange={handleContentChange}
+                onMouseUp={selectWordFromCaret}
+                onDoubleClick={selectWordFromCaret}
+                className="editable-lyrics"
+                data-testid="lyrics-editor"
+                disabled={song?.is_locked}
+              />
+            ) : (
+              <div className="lyrics-select" data-testid="lyrics-select">
+                {lyricLines.map((line) => (
+                  <div className="lyrics-line" key={line.key}>
+                    {line.tokens.map((tok) =>
+                      tok.isSpace || !tok.cleaned ? (
+                        <span key={tok.key}>{tok.raw}</span>
+                      ) : (
+                        <span
+                          key={tok.key}
+                          className={`word${selectedKey === tok.key ? " selected" : ""}`}
+                          data-word={tok.cleaned}
+                          onClick={() => handleWordClick(tok.cleaned, tok.key)}
+                        >
+                          {tok.raw}
+                        </span>
+                      )
+                    )}
+                    {/* keep empty lines from collapsing */}
+                    {line.tokens.every((tk) => tk.isSpace) && <br />}
+                  </div>
+                ))}
+              </div>
+            )}
             
             {song?.is_locked && (
               <div className="mt-4 text-sm text-[#FF3B30] flex items-center gap-2">

@@ -1,0 +1,2 @@
+npm error npx canceled due to missing packages and no YES option: ["babel@5.8.38"]
+npm error A complete log of this run can be found in: C:\Users\waldo\AppData\Local\npm-cache\_logs\2026-05-31T01_14_02_626Z-debug-0.log
