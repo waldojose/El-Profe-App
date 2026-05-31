@@ -25,6 +25,8 @@ from reportlab.platypus import (
 import io
 import base64
 import hashlib
+import asyncio
+import dictionary_tools as dt
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -625,115 +627,98 @@ async def get_versions(song_id: str, current_user: User = Depends(get_current_us
     
     return [Version(**version) for version in versions]
 
-# Synonyms tool - using Datamuse API (English) and Spanish fallback
-@api_router.get("/synonyms/{word}")
-async def get_synonyms(word: str):
+# ---------------------------------------------------------------------------
+# Songwriter dictionary tools (synonyms / antonyms / rhymes / translate)
+# Bilingual EN+ES, powered by Datamuse (stdlib urllib via run_in_executor) plus
+# curated Spanish data and a suffix-based Spanish rhyme engine. See
+# dictionary_tools.py. Network failures degrade gracefully to [] (never 500).
+# ---------------------------------------------------------------------------
+
+def _resolve_lang(word: str, lang: str | None) -> str:
+    lang = (lang or "").lower()
+    if lang in ("en", "es"):
+        return lang
+    return dt.detect_lang(word)
+
+
+async def _run(fn, *args):
+    """Run a blocking dictionary function off the event loop."""
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(None, fn, *args)
+
+
+async def _lookup(kind: str, word: str, lang: str | None):
+    """Core resolver shared by every dictionary endpoint.
+
+    Returns {"word", "results", "language", "kind"}. The legacy /synonyms route
+    re-maps "results" -> "synonyms" so the existing frontend keeps working.
+    """
+    word = (word or "").strip()
+    if not word:
+        return {"word": word, "results": [], "language": "unknown", "kind": kind}
+
+    resolved = _resolve_lang(word, lang)
+    cached = dt.cache_get(kind, resolved, word.lower())
+    if cached is not None:
+        return {"word": word, "results": cached, "language": resolved, "kind": kind}
+
+    results: list = []
     try:
-        import requests
-        
-        # Try English first with Datamuse API
-        response = requests.get(f"https://api.datamuse.com/words", params={
-            "rel_syn": word.lower(),
-            "max": 20
-        }, timeout=5)
-        
-        if response.status_code == 200:
-            data = response.json()
-            synonyms = [item["word"] for item in data[:15]]
-            
-            # If we got English results, return them
-            if synonyms:
-                return {"word": word, "synonyms": synonyms, "language": "en"}
-        
-        # If no English results, try Spanish dictionary
-        spanish_synonyms = {
-            "amor": ["cariño", "afecto", "pasión", "ternura", "adoración", "devoción"],
-            "corazón": ["alma", "espíritu", "sentimiento", "pecho", "centro"],
-            "noche": ["oscuridad", "anochecer", "medianoche", "madrugada", "tarde"],
-            "sueño": ["ensueño", "ilusión", "fantasía", "deseo", "anhelo", "aspiración"],
-            "música": ["melodía", "armonía", "sonido", "canción", "ritmo", "compás"],
-            "luz": ["brillo", "resplandor", "claridad", "luminosidad", "fulgor"],
-            "dolor": ["sufrimiento", "pena", "angustia", "tormento", "aflicción"],
-            "feliz": ["alegre", "contento", "dichoso", "radiante", "jubiloso"],
-            "triste": ["melancólico", "apenado", "afligido", "sombrío", "deprimido"],
-            "tiempo": ["momento", "época", "periodo", "instante", "era"],
-            "vida": ["existencia", "vivencia", "experiencia", "aliento", "espíritu"],
-            "muerte": ["fin", "fallecimiento", "deceso", "término", "pérdida"],
-            "cielo": ["firmamento", "paraíso", "inmensidad", "bóveda celeste"],
-            "tierra": ["suelo", "mundo", "planeta", "patria", "terreno"],
-            "fuego": ["llama", "ardor", "pasión", "calor", "incendio"],
-            "agua": ["líquido", "fluido", "corriente", "caudal", "río"],
-            "viento": ["aire", "brisa", "soplo", "corriente", "ráfaga"],
-            "sol": ["astro", "estrella", "luz solar", "claridad", "brillo"],
-            "luna": ["satélite", "astro nocturno", "plenilunio", "menguante"],
-            "estrella": ["astro", "lucero", "estrellita", "luminaria"],
-            "palabra": ["término", "vocablo", "expresión", "voz", "promesa"],
-            "silencio": ["quietud", "calma", "paz", "mutismo", "sosiego"],
-            "voz": ["sonido", "tono", "timbre", "palabra", "grito"],
-            "canción": ["melodía", "tema", "balada", "canto", "tonada"],
-            "bailar": ["danzar", "moverse", "girar", "valsar", "menear"],
-            "besar": ["dar un beso", "acariciar", "rozar", "tocar"],
-            "abrazar": ["estrechar", "rodear", "envolver", "apretar"],
-            "llorar": ["lagrimear", "sollozar", "gemir", "lamentarse"],
-            "reír": ["carcajear", "sonreír", "desternillarse", "alegrar"],
-            "caminar": ["andar", "pasear", "marchar", "transitar", "deambular"],
-            "correr": ["trotar", "galopar", "apresurarse", "acelerar"],
-            "dormir": ["descansar", "reposar", "yacer", "adormecerse"],
-            "despertar": ["despertarse", "levantarse", "abrir los ojos"],
-            "comer": ["alimentarse", "ingerir", "degustar", "devorar"],
-            "beber": ["tomar", "ingerir", "libar", "sorber", "tragar"],
-            "escribir": ["redactar", "componer", "anotar", "plasmar"],
-            "leer": ["ojear", "repasar", "estudiar", "descifrar"],
-            "pensar": ["reflexionar", "meditar", "considerar", "razonar"],
-            "sentir": ["percibir", "experimentar", "notar", "vivir"],
-            "mirar": ["observar", "contemplar", "ver", "ojear", "divisar"],
-            "escuchar": ["oír", "atender", "percibir", "captar"],
-            "hablar": ["conversar", "charlar", "dialogar", "platicar"],
-            "gritar": ["vociferar", "chillar", "bramar", "aullar"],
-            "cantar": ["entonar", "interpretar", "tararear", "vocalizar"],
-            "tocar": ["palpar", "acariciar", "rozar", "tantear"],
-            "buscar": ["indagar", "investigar", "rastrear", "explorar"],
-            "encontrar": ["hallar", "localizar", "descubrir", "topar"],
-            "perder": ["extraviar", "olvidar", "desaprovechar"],
-            "ganar": ["obtener", "conseguir", "lograr", "alcanzar"],
-            "dar": ["entregar", "otorgar", "conceder", "ofrecer", "regalar"],
-            "recibir": ["obtener", "aceptar", "tomar", "adquirir"],
-            "tener": ["poseer", "contar con", "disponer", "portar"],
-            "querer": ["amar", "desear", "anhelar", "adorar", "apreciar"],
-            "poder": ["capacidad", "fuerza", "autoridad", "dominio"],
-            "saber": ["conocer", "entender", "comprender", "dominar"],
-            "hacer": ["realizar", "ejecutar", "crear", "efectuar", "fabricar"],
-            "ir": ["marchar", "dirigirse", "trasladarse", "partir"],
-            "venir": ["llegar", "acercarse", "aproximarse", "arribar"],
-            "estar": ["hallarse", "encontrarse", "permanecer", "situarse"],
-            "ser": ["existir", "constituir", "representar"],
-            "ver": ["observar", "mirar", "contemplar", "divisar", "percibir"],
-            "decir": ["expresar", "manifestar", "comunicar", "declarar"],
-            "bello": ["hermoso", "bonito", "lindo", "precioso", "bello"],
-            "feo": ["horrible", "desagradable", "repulsivo", "antiestético"],
-            "grande": ["enorme", "vasto", "inmenso", "gigantesco", "colosal"],
-            "pequeño": ["diminuto", "chico", "reducido", "minúsculo"],
-            "bueno": ["óptimo", "excelente", "magnífico", "extraordinario"],
-            "malo": ["pésimo", "negativo", "perjudicial", "nocivo"],
-            "nuevo": ["reciente", "moderno", "actual", "novato", "fresco"],
-            "viejo": ["antiguo", "anciano", "añejo", "veterano", "usado"],
-            "joven": ["juvenil", "mozo", "adolescente", "muchacho"],
-            "rápido": ["veloz", "presto", "ligero", "acelerado", "raudo"],
-            "lento": ["pausado", "tranquilo", "moroso", "perezoso"],
-            "fuerte": ["robusto", "potente", "vigoroso", "poderoso"],
-            "débil": ["frágil", "endeble", "flojo", "delicado"]
-        }
-        
-        word_lower = word.lower()
-        if word_lower in spanish_synonyms:
-            return {"word": word, "synonyms": spanish_synonyms[word_lower], "language": "es"}
-        
-        # No results in either language
-        return {"word": word, "synonyms": [], "language": "unknown"}
-        
-    except Exception as e:
-        logger.error(f"Error fetching synonyms: {e}")
-        return {"word": word, "synonyms": [], "language": "error"}
+        if kind == "synonyms":
+            results = await _run(dt.synonyms_remote, word, resolved)
+            if not results and resolved == "es":
+                results = dt.SPANISH_SYNONYMS.get(word.lower(), [])
+        elif kind == "antonyms":
+            results = await _run(dt.antonyms_remote, word, resolved)
+            if not results and resolved == "es":
+                results = dt.SPANISH_ANTONYMS.get(word.lower(), [])
+        elif kind == "rhymes":
+            results = await _run(dt.rhymes_remote, word, resolved)
+            if resolved == "es" and len(results) < 5:
+                # Suffix-based ES fallback so rhymes work where Datamuse is weak.
+                merged = list(results) + dt.spanish_rhymes(word)
+                results = dt._dedupe(merged)
+        elif kind == "translate":
+            results = dt.translate_word(word, resolved)
+            if not results:
+                # Datamuse cross-language: sp= source word, v=target language.
+                target = "en" if resolved == "es" else "es"
+                results = await _run(
+                    lambda w, v: dt._datamuse({"sp": w, "v": v}, 5), word.lower(), target
+                )
+    except Exception as e:  # never surface a 500 to the panel
+        logger.error(f"dictionary {kind} error for '{word}': {e}")
+        results = []
+
+    dt.cache_set(kind, resolved, word.lower(), results)
+    return {"word": word, "results": results, "language": resolved, "kind": kind}
+
+
+# Legacy endpoint kept for backward compatibility (frontend reads `.synonyms`).
+@api_router.get("/synonyms/{word}")
+async def get_synonyms(word: str, lang: str | None = None):
+    data = await _lookup("synonyms", word, lang)
+    return {"word": data["word"], "synonyms": data["results"], "language": data["language"]}
+
+
+@api_router.get("/dictionary/synonyms/{word}")
+async def dict_synonyms(word: str, lang: str | None = None):
+    return await _lookup("synonyms", word, lang)
+
+
+@api_router.get("/dictionary/antonyms/{word}")
+async def dict_antonyms(word: str, lang: str | None = None):
+    return await _lookup("antonyms", word, lang)
+
+
+@api_router.get("/dictionary/rhymes/{word}")
+async def dict_rhymes(word: str, lang: str | None = None):
+    return await _lookup("rhymes", word, lang)
+
+
+@api_router.get("/dictionary/translate/{word}")
+async def dict_translate(word: str, lang: str | None = None):
+    return await _lookup("translate", word, lang)
 
 # Subscription
 @api_router.post("/subscription/upgrade")
