@@ -1,13 +1,52 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { toast } from "sonner";
 import { Eye, EyeOff, Music } from "lucide-react";
 import { motion } from "framer-motion";
 import { useI18n } from "../i18n/I18nProvider";
+import LanguageToggle from "../components/LanguageToggle";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
+
+// Same reactive aurora background used on the landing page (violet/cyan/magenta
+// blobs + grid + noise), kept local to Auth so the auth screen feels cohesive
+// with the rest of the app instead of the old flat background + stock photo.
+const AuthAuroraBackground = () => {
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    let raf = 0;
+    const onMove = (e) => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const x = (e.clientX / window.innerWidth) * 100;
+        const y = (e.clientY / window.innerHeight) * 100;
+        el.style.setProperty("--mx", `${x}%`);
+        el.style.setProperty("--my", `${y}%`);
+      });
+    };
+    window.addEventListener("pointermove", onMove);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+
+  return (
+    <>
+      <div className="aurora-bg" ref={ref}>
+        <div className="aurora-blob v1" />
+        <div className="aurora-blob v2" />
+        <div className="aurora-blob v3" />
+      </div>
+      <div className="grid-overlay" />
+      <div className="noise-overlay" />
+    </>
+  );
+};
 
 const Auth = ({ setToken, setUser }) => {
   const [searchParams] = useSearchParams();
@@ -48,17 +87,11 @@ const Auth = ({ setToken, setUser }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white flex items-center justify-center px-6 py-12 relative overflow-hidden">
-      <div className="noise-overlay"></div>
-      
-      {/* Background Elements */}
-      <div className="absolute top-0 right-0 w-1/2 h-full opacity-20">
-        <img
-          src="https://images.unsplash.com/photo-1649910855313-8cb8e2e6af9d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzZ8MHwxfHNlYXJjaHwyfHxtdXNpYyUyMHN0dWRpbyUyMHJlY29yZGluZyUyMHNlc3Npb24lMjBkYXJrfGVufDB8fHx8MTc2NTUwODUxN3ww&ixlib=rb-4.1.0&q=85"
-          alt="Background"
-          className="w-full h-full object-cover"
-          style={{ maskImage: 'linear-gradient(to left, black 0%, transparent 100%)' }}
-        />
+    <div className="min-h-screen text-white flex items-center justify-center px-6 py-12 relative overflow-hidden" style={{ background: "var(--ep-bg)" }}>
+      <AuthAuroraBackground />
+
+      <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
+        <LanguageToggle inline />
       </div>
 
       <motion.div

@@ -454,6 +454,13 @@
 
 .ep-dash-content { padding: 28px 24px 60px; max-width: 1200px; width: 100%; }
 
+/* Narrow phones: let the topbar wrap instead of overflowing horizontally
+   (search box drops to its own row under the action buttons). */
+@media (max-width: 480px) {
+  .ep-topbar { flex-wrap: wrap; row-gap: 8px; padding: 12px 16px; }
+  .ep-search { order: 3; flex: 1 1 100%; max-width: 100%; }
+}
+
 /* Stat row */
 .ep-stat-row {
   display: grid;

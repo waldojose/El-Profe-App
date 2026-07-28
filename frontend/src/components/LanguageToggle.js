@@ -6,14 +6,20 @@ import { useI18n } from "../i18n/I18nProvider";
 //  - inline (default false): a fixed floating toggle, top-right, for pages that
 //    don't embed it. Hidden on routes that render their own inline toggle.
 //  - inline=true: a static pill meant to live inside a nav/topbar.
+// Routes that render their own inline toggle in their header/topbar — keep
+// this list in sync with every page that mounts <LanguageToggle inline />,
+// so there is always exactly one toggle visible per screen.
+const ROUTES_WITH_INLINE_TOGGLE = ["/", "/dashboard", "/editor", "/network", "/messages", "/auth"];
+
 export default function LanguageToggle({ inline = false }) {
   const { lang, setLang } = useI18n();
   const location = useLocation();
   const langs = ["en", "es"];
 
-  // The landing nav and the dashboard topbar embed their own inline toggle,
-  // so the floating one stays out of their way.
-  if (!inline && (location.pathname === "/" || location.pathname.startsWith("/dashboard"))) {
+  const hasOwnInlineToggle = ROUTES_WITH_INLINE_TOGGLE.some((route) =>
+    route === "/" ? location.pathname === "/" : location.pathname.startsWith(route)
+  );
+  if (!inline && hasOwnInlineToggle) {
     return null;
   }
 

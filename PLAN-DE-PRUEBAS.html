@@ -1,0 +1,611 @@
+<meta charset="utf-8">
+<title>El Profe — Plan de Pruebas (QA / UAT)</title>
+<style>
+  :root{
+    --violet:#7c5cff;
+    --violet-dark:#5b3fd6;
+    --violet-soft:#efeaff;
+    --ink:#1c1b22;
+    --muted:#5c5a68;
+    --line:#e2e0ea;
+    --ok:#1f9d55;
+    --warn:#c47f00;
+    --fail:#d1394a;
+    --bg:#ffffff;
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--ink);
+    background:var(--bg);
+    margin:0;
+    line-height:1.55;
+    font-size:15px;
+  }
+  .page{
+    max-width:850px;
+    margin:0 auto;
+    padding:48px 56px;
+  }
+  h1,h2,h3,h4{line-height:1.2;color:var(--ink);}
+  h2{
+    font-size:24px;
+    margin-top:2.4em;
+    padding-bottom:.3em;
+    border-bottom:3px solid var(--violet);
+  }
+  h3{font-size:18px;margin-top:1.8em;color:var(--violet-dark);}
+  h4{font-size:15px;margin-top:1.4em;margin-bottom:.4em;}
+  p{margin:.6em 0;}
+  a{color:var(--violet-dark);}
+  code,.mono{
+    font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+    font-size:.88em;
+    background:#f4f2fb;
+    padding:1px 5px;
+    border-radius:4px;
+    color:#3a2f66;
+  }
+  .muted{color:var(--muted);}
+  ul,ol{margin:.5em 0 .9em;padding-left:1.4em;}
+  li{margin:.28em 0;}
+
+  /* Cover */
+  .cover{
+    min-height:92vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    text-align:center;
+    border-bottom:none;
+  }
+  .cover .brand{
+    font-size:15px;
+    letter-spacing:.35em;
+    text-transform:uppercase;
+    color:var(--violet);
+    font-weight:700;
+    margin-bottom:1.2em;
+  }
+  .cover h1{
+    font-size:52px;
+    margin:.1em 0;
+    letter-spacing:-1px;
+  }
+  .cover .sub{
+    font-size:20px;
+    color:var(--muted);
+    margin-top:.4em;
+  }
+  .cover .rule{
+    width:90px;height:5px;background:var(--violet);
+    margin:2em auto;border-radius:3px;
+  }
+  .cover .meta{
+    display:inline-grid;
+    grid-template-columns:auto auto;
+    gap:.35em 1.6em;
+    text-align:left;
+    margin-top:1.5em;
+    font-size:14px;
+  }
+  .cover .meta .k{color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-size:12px;}
+  .cover .meta .v{font-weight:600;}
+
+  /* Badges */
+  .badge{
+    display:inline-block;
+    font-size:11px;
+    font-weight:700;
+    padding:2px 9px;
+    border-radius:20px;
+    letter-spacing:.03em;
+    vertical-align:middle;
+  }
+  .b-violet{background:var(--violet-soft);color:var(--violet-dark);}
+  .b-ok{background:#e2f5ea;color:var(--ok);}
+  .b-warn{background:#fbf1dc;color:var(--warn);}
+  .b-fail{background:#fbe2e5;color:var(--fail);}
+  .b-pend{background:#eeecf3;color:#6b6878;}
+
+  /* Callout */
+  .note{
+    border-left:4px solid var(--violet);
+    background:var(--violet-soft);
+    padding:12px 16px;
+    border-radius:0 8px 8px 0;
+    margin:1.1em 0;
+    font-size:14px;
+  }
+  .note.warn{border-color:var(--warn);background:#fdf6e8;}
+
+  /* TOC */
+  .toc{
+    background:#faf9fe;
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:20px 28px;
+  }
+  .toc h2{border:none;margin-top:0;font-size:20px;}
+  .toc ol{counter-reset:item;list-style:none;padding-left:0;}
+  .toc ol li{
+    counter-increment:item;
+    padding:5px 0;
+    border-bottom:1px dashed var(--line);
+  }
+  .toc ol li:last-child{border-bottom:none;}
+  .toc ol li::before{
+    content:counter(item);
+    display:inline-block;
+    width:26px;height:26px;line-height:26px;
+    text-align:center;
+    background:var(--violet);color:#fff;
+    border-radius:50%;font-size:12px;font-weight:700;
+    margin-right:12px;
+  }
+  .toc a{text-decoration:none;color:var(--ink);font-weight:500;}
+
+  /* Tables */
+  table{
+    width:100%;
+    border-collapse:collapse;
+    margin:1.1em 0;
+    font-size:13px;
+  }
+  th,td{
+    border:1px solid var(--line);
+    padding:8px 10px;
+    text-align:left;
+    vertical-align:top;
+  }
+  thead th{
+    background:var(--violet);
+    color:#fff;
+    font-size:12px;
+    letter-spacing:.02em;
+  }
+  tbody tr:nth-child(even){background:#faf9fe;}
+  td.id{font-family:Consolas,monospace;font-weight:700;color:var(--violet-dark);white-space:nowrap;}
+  .matrix td{font-size:12.5px;}
+
+  /* Persona cards */
+  .persona{
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:4px 22px 18px;
+    margin:1.2em 0;
+    border-top:5px solid var(--violet);
+    background:#fff;
+  }
+  .persona .role{
+    display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+  }
+  .persona .acct{
+    font-size:13px;color:var(--muted);margin-top:-.4em;
+  }
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  .card{border:1px solid var(--line);border-radius:10px;padding:14px 18px;background:#fff;}
+
+  hr.sep{border:none;border-top:1px solid var(--line);margin:2.4em 0;}
+
+  .foot{
+    margin-top:3em;padding-top:1em;border-top:1px solid var(--line);
+    font-size:12px;color:var(--muted);text-align:center;
+  }
+
+  /* Print */
+  @page{size:A4;margin:16mm 14mm;}
+  @media print{
+    body{font-size:11.5px;}
+    .page{padding:0;max-width:none;}
+    h2{page-break-after:avoid;}
+    h3,h4{page-break-after:avoid;}
+    table,.persona,.note,.card{page-break-inside:avoid;}
+    thead{display:table-header-group;}
+    tr{page-break-inside:avoid;}
+    .cover{min-height:96vh;page-break-after:always;}
+    .toc{page-break-after:always;}
+    a{color:var(--ink);text-decoration:none;}
+    .no-print{display:none;}
+  }
+  .pb{page-break-before:always;}
+</style>
+
+<div class="page">
+
+<!-- ============ COVER ============ -->
+<section class="cover">
+  <div class="brand">El Profe</div>
+  <h1>Plan de Pruebas</h1>
+  <div class="sub">QA / UAT — Verificación de calidad y aceptación de usuario</div>
+  <div class="rule"></div>
+  <p class="muted" style="max-width:520px;margin:0 auto;">Plataforma para compositores: co-escribir letras, registrar aportes, repartir splits de regalías, firmar y exportar el split sheet legal para tu PRO.</p>
+  <div class="meta">
+    <span class="k">Documento</span><span class="v">Plan de Pruebas (QA / UAT)</span>
+    <span class="k">Versión</span><span class="v">v1.0</span>
+    <span class="k">Fecha</span><span class="v">__________________ (completar)</span>
+    <span class="k">Ambiente</span><span class="v">Staging / Demo — Render</span>
+    <span class="k">Preparado por</span><span class="v">Equipo QA — El Profe</span>
+    <span class="k">Estado</span><span class="v"><span class="badge b-warn">En pruebas</span></span>
+  </div>
+</section>
+
+<!-- ============ TOC ============ -->
+<section class="toc pb">
+  <h2>Tabla de contenido</h2>
+  <ol>
+    <li><a href="#s1">Resumen ejecutivo</a></li>
+    <li><a href="#s2">Ambiente de prueba (staging)</a></li>
+    <li><a href="#s3">Equipo de pruebas — 4 personas</a></li>
+    <li><a href="#s4">Testing automatizado con super-agentes</a></li>
+    <li><a href="#s5">Matriz de casos de prueba</a></li>
+    <li><a href="#s6">Reporte de bugs</a></li>
+    <li><a href="#s7">Criterios de aceptación (GO / NO-GO)</a></li>
+    <li><a href="#s8">Cronograma sugerido</a></li>
+  </ol>
+</section>
+
+<!-- ============ 1. RESUMEN ============ -->
+<h2 id="s1">1. Resumen ejecutivo</h2>
+
+<h3>Objetivo</h3>
+<p>Validar que <strong>El Profe</strong> funciona de punta a punta antes del lanzamiento: que un compositor pueda registrarse, escribir una canción con un co-autor, usar el diccionario bilingüe, acordar los <em>splits</em> de regalías, firmar estilo DocuSign y descargar el <em>split sheet</em> legal en PDF, sin errores, sin fugas de datos entre autores y con la interfaz correcta en inglés y español.</p>
+
+<h3>Alcance (qué SÍ se prueba)</h3>
+<ul>
+  <li><strong>Autenticación y perfil:</strong> registro, login, JWT obligatorio, rate limiting, cuentas demo Pro y Free.</li>
+  <li><strong>Dashboard:</strong> tarjetas de resumen, filtros y tarjetas de canción.</li>
+  <li><strong>Editor de letras y diccionario bilingüe:</strong> clic en palabra → sinónimos, antónimos, rimas, traducir.</li>
+  <li><strong>Colaboración:</strong> invitar co-autor, registro de contribuciones, mensajes y red.</li>
+  <li><strong>Splits y firma:</strong> proponer reparto (lo deciden los autores, nunca la IA), firmar estilo DocuSign, PDF legal solo cuando firman todos.</li>
+  <li><strong>Historial de versiones.</strong></li>
+  <li><strong>Idioma:</strong> selector EN/ES en todas las pantallas.</li>
+  <li><strong>Pago Pro:</strong> Stripe en <span class="badge b-warn">MODO PRUEBA</span> con tarjeta de test 4242.</li>
+  <li><strong>Seguridad:</strong> control de acceso por co-autoría (IDOR), CORS, JWT, límite de intentos de login.</li>
+  <li><strong>Responsive:</strong> comportamiento en móvil y escritorio.</li>
+</ul>
+
+<h3>Qué NO se prueba todavía (fuera de alcance)</h3>
+<div class="note warn">
+  <ul style="margin:0;">
+    <li><strong>Pago real (live):</strong> Stripe está en modo prueba. No se procesan tarjetas reales ni cobros verdaderos.</li>
+    <li><strong>Validez jurídica del split sheet ante un PRO real (ASCAP/BMI/SESAC/SGAE):</strong> se verifica que el PDF se genere y contenga los datos correctos, no su aceptación legal por la entidad.</li>
+    <li><strong>Carga / estrés a gran escala:</strong> Render tier gratis; se documenta el <em>cold start</em>, no se hacen pruebas de miles de usuarios concurrentes.</li>
+    <li><strong>Integración con firma DocuSign real:</strong> la firma es "estilo DocuSign" dentro de la app, no el servicio DocuSign externo.</li>
+    <li><strong>Correos transaccionales en producción</strong> (si no están configurados en staging).</li>
+  </ul>
+</div>
+
+<!-- ============ 2. AMBIENTE ============ -->
+<h2 id="s2" class="pb">2. Ambiente de prueba (staging)</h2>
+
+<p>Toda prueba que <strong>escriba</strong> datos (crear canciones, firmar, pagar) debe correr en un <strong>ambiente de staging separado de producción</strong>, para no ensuciar datos reales de usuarios ni disparar cobros. A continuación, dos opciones.</p>
+
+<h3>Opción A — Staging dedicado (recomendada)</h3>
+<ul>
+  <li>Crear un <strong>segundo servicio en Render</strong> llamado <code>el-profe-staging</code>, apuntando a la misma rama o a una rama <code>staging</code>.</li>
+  <li>Usar una <strong>base MongoDB Atlas separada</strong> (cluster distinto) o, como mínimo, el <strong>mismo cluster con un <code>DB_NAME</code> diferente</strong> (por ejemplo <code>elprofe_staging</code>). Así los datos de prueba nunca tocan la colección de producción.</li>
+  <li>Ventaja: puedes borrar y re-sembrar libremente, romper cosas y probar el pago sin miedo.</li>
+</ul>
+
+<h3>Opción B — Usar el ambiente actual como staging (por ahora)</h3>
+<ul>
+  <li>Ambiente actual: <a href="https://el-profe.onrender.com">https://el-profe.onrender.com</a> (Render, tier gratis).</li>
+  <li>Válido mientras no haya usuarios reales de producción. Trabaja solo con las cuentas demo y los datos sembrados.</li>
+  <li><span class="badge b-warn">Ojo</span> primera carga con <em>cold start</em> de ~30–50 s (el servicio "despierta"). No lo confundas con un bug: espera y recarga.</li>
+</ul>
+
+<h3>Cuentas de prueba y datos sembrados</h3>
+<table>
+  <thead><tr><th>Cuenta</th><th>Correo</th><th>Contraseña</th><th>Plan</th></tr></thead>
+  <tbody>
+    <tr><td>Demo Pro</td><td class="mono">pro@elprofe.app</td><td class="mono">ElProfe2026!</td><td><span class="badge b-violet">Pro</span></td></tr>
+    <tr><td>Demo Free</td><td class="mono">free@elprofe.app</td><td class="mono">ElProfe2026!</td><td><span class="badge b-pend">Free</span></td></tr>
+  </tbody>
+</table>
+<p><strong>Datos ya sembrados:</strong> 5 autores, 3 canciones — <em>Sunset Dreams</em> y <em>Camino de Plata</em> (firmadas) y <em>Untitled Demo</em> (borrador) — más mensajes de ejemplo.</p>
+
+<h4>Cómo crear cuentas de prueba nuevas</h4>
+<ul>
+  <li>Registro normal desde la app con correos ficticios (por ejemplo <code>tester1+colab@elprofe.app</code>).</li>
+  <li>Para el flujo de co-autoría, registra un segundo tester e invítalo desde una canción.</li>
+</ul>
+
+<h4>Cómo resetear datos</h4>
+<ul>
+  <li>En staging con <code>DB_NAME</code> propio: volver a correr el <em>seed script</em> del backend (recrea autores, canciones y mensajes de ejemplo) o dropear la base y sembrar de nuevo.</li>
+  <li>En el ambiente actual: no dropear nada; limpiar manualmente las canciones/mensajes de prueba que hayas creado.</li>
+</ul>
+
+<h4>Variables de entorno clave</h4>
+<table>
+  <thead><tr><th>Variable</th><th>Valor en staging</th><th>Nota</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">DB_NAME</td><td class="mono">elprofe_staging</td><td>Separa datos de prueba de producción.</td></tr>
+    <tr><td class="mono">MONGODB_URI</td><td class="mono">Atlas (cluster staging)</td><td>Nube, cifrado en reposo + TLS.</td></tr>
+    <tr><td class="mono">STRIPE_SECRET_KEY</td><td class="mono">sk_test_…</td><td><strong>Clave de TEST</strong>, nunca la live.</td></tr>
+    <tr><td class="mono">JWT_SECRET</td><td class="mono">(propio de staging)</td><td>Distinto al de producción.</td></tr>
+    <tr><td class="mono">CORS_ORIGINS</td><td class="mono">URL de staging</td><td>Origen único; sin comodín <code>*</code>.</td></tr>
+  </tbody>
+</table>
+
+<div class="note">
+  <strong>Nota de datos:</strong> las cuentas, autores y canciones viven en <strong>MongoDB Atlas</strong> (nube), con <strong>cifrado en reposo</strong> y <strong>TLS en tránsito</strong>. Frontend (React) y backend (FastAPI) corren en un <strong>solo origen</strong> en Render.
+</div>
+
+<!-- ============ 3. EQUIPO ============ -->
+<h2 id="s3" class="pb">3. Equipo de pruebas — 4 personas</h2>
+<p>Cuatro roles cubren, entre todos, cada módulo. Cada persona sigue su guión numerado y marca resultados en la matriz (sección 5).</p>
+
+<!-- Waldo -->
+<div class="persona">
+  <div class="role"><h3 style="margin-top:.7em;">Waldo — Product Owner</h3><span class="badge b-violet">Flujo completo</span></div>
+  <p class="acct">Cuenta: <span class="mono">pro@elprofe.app</span> (Pro) · Mirada: que todo el recorrido funcione de principio a fin.</p>
+  <ol>
+    <li>Abrir <span class="mono">el-profe.onrender.com</span>; confirmar el <em>cold start</em> (~30–50 s) y que la app carga sin errores en consola.</li>
+    <li>Login con la cuenta Pro; verificar que el JWT persiste y el dashboard muestra las 3 canciones sembradas.</li>
+    <li>Revisar tarjetas de resumen del dashboard y probar los filtros (por estado: firmadas vs. borrador).</li>
+    <li>Crear una canción nueva desde cero ("QA Full Flow") y escribir una letra de varias líneas.</li>
+    <li>Invitar a un co-autor (Usuario de prueba 1) y confirmar que aparece en la canción.</li>
+    <li>Proponer un split (ej. 60/40); verificar que los porcentajes los define el autor, <strong>nunca la IA</strong>, y que suman 100%.</li>
+    <li>Firmar estilo DocuSign como Pro; esperar a que firme el co-autor.</li>
+    <li>Cuando <strong>todos</strong> firmaron, descargar el <strong>PDF del split sheet</strong> y revisar título, autores, %, fecha y firmas.</li>
+    <li>Abrir el historial de versiones y confirmar que registra los cambios de la letra.</li>
+    <li>Cambiar idioma EN ⇄ ES y confirmar que el dashboard y el editor se traducen.</li>
+  </ol>
+</div>
+
+<!-- Jose -->
+<div class="persona">
+  <div class="role"><h3 style="margin-top:.7em;">José "El Profe" — Dueño / compositor real</h3><span class="badge b-violet">Mirada de autor</span></div>
+  <p class="acct">Cuenta: <span class="mono">pro@elprofe.app</span> (Pro) · Mirada: ¿esto le sirve de verdad a un compositor?</p>
+  <ol>
+    <li>Abrir la canción sembrada <em>Untitled Demo</em> (borrador) y continuar la letra como lo haría en un estudio.</li>
+    <li>Hacer clic en varias palabras para probar el <strong>diccionario bilingüe</strong>: sinónimos, antónimos, <strong>rimas</strong> y traducir; juzgar si las rimas son útiles.</li>
+    <li>Escribir una estrofa en español y otra en inglés; confirmar que el diccionario responde en ambos idiomas.</li>
+    <li>Revisar que el <strong>registro de aportes/contribuciones</strong> refleje quién escribió qué.</li>
+    <li>Evaluar el flujo de proponer split: ¿es claro que el reparto lo deciden los autores?</li>
+    <li>Firmar estilo DocuSign y opinar si la experiencia se siente confiable/legal.</li>
+    <li>Revisar el PDF final: ¿se ve profesional y presentable ante ASCAP/BMI/SESAC/SGAE?</li>
+    <li>Enviar y leer mensajes de ejemplo con un co-autor; validar el tono y la utilidad.</li>
+    <li>Reportar cualquier fricción de UX o texto en español que no suene natural (español neutro).</li>
+  </ol>
+</div>
+
+<!-- Colaborador -->
+<div class="persona">
+  <div class="role"><h3 style="margin-top:.7em;">Usuario de prueba 1 — Co-autor invitado</h3><span class="badge b-violet">Colaboración y firma</span></div>
+  <p class="acct">Cuenta: registra una nueva (ej. <span class="mono">tester1+colab@elprofe.app</span>) · Mirada: el que recibe la invitación.</p>
+  <ol>
+    <li>Registrarse desde cero; validar el flujo de alta y el login con JWT.</li>
+    <li>Completar el perfil (nombre de autor / datos para el split sheet).</li>
+    <li>Aceptar la invitación de Waldo a la canción "QA Full Flow".</li>
+    <li>Aportar líneas a la letra y confirmar que su contribución queda registrada a su nombre.</li>
+    <li>Ver las contribuciones de ambos autores y el reparto propuesto.</li>
+    <li>Revisar el split propuesto (60/40) y aceptar/negociar; confirmar que puede firmar solo su parte.</li>
+    <li><strong>Firmar estilo DocuSign</strong> como co-autor; confirmar que su firma completa el proceso.</li>
+    <li><strong>Prueba de seguridad (IDOR):</strong> intentar abrir por URL/ID una canción de la que NO es co-autor y confirmar acceso denegado (403), no fuga de datos.</li>
+    <li>Intercambiar mensajes con Waldo dentro de la canción.</li>
+    <li>Descargar el PDF (ya con las dos firmas) y verificar que aparece como co-autor.</li>
+  </ol>
+</div>
+
+<!-- Free -->
+<div class="persona">
+  <div class="role"><h3 style="margin-top:.7em;">Usuario de prueba 2 — Usuario Free</h3><span class="badge b-violet">Límites y upgrade</span></div>
+  <p class="acct">Cuenta: <span class="mono">free@elprofe.app</span> (Free) · Mirada: ¿qué puedo hacer gratis y cómo me convierto en Pro?</p>
+  <ol>
+    <li>Login con la cuenta Free; confirmar que el dashboard identifica el plan como Free.</li>
+    <li>Recorrer la app y anotar los <strong>límites del plan Free</strong> (qué está bloqueado o restringido frente a Pro).</li>
+    <li>Intentar una acción reservada a Pro y confirmar que aparece el aviso/paywall correcto.</li>
+    <li>Iniciar el <strong>upgrade a Pro</strong>; confirmar que Stripe está en <span class="badge b-warn">modo prueba</span>.</li>
+    <li>Pagar con la tarjeta de test: <span class="mono">4242 4242 4242 4242</span>, vencimiento <span class="mono">12/34</span>, CVC <span class="mono">123</span>.</li>
+    <li>Confirmar que tras el pago la cuenta pasa a Pro y se desbloquean las funciones antes restringidas.</li>
+    <li>Probar una tarjeta inválida (ej. terminación distinta) y confirmar mensaje de error claro, sin romper la app.</li>
+    <li>Cambiar idioma EN ⇄ ES en la pantalla de pago y planes; verificar traducción.</li>
+    <li>Probar todo el recorrido en <strong>móvil</strong> (responsive): login, dashboard, editor y pago.</li>
+  </ol>
+</div>
+
+<!-- ============ 4. SUPER-AGENTES ============ -->
+<h2 id="s4" class="pb">4. Testing automatizado con super-agentes</h2>
+<p>Agentes de IA con automatización de navegador (browser automation) pueden correr estos escenarios E2E contra la URL de staging, de forma repetible, complementando las pruebas manuales.</p>
+
+<table>
+  <thead><tr><th style="width:32px">#</th><th>Escenario</th><th>Qué hace</th><th>Resultado esperado</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="id">A</td><td><strong>Smoke test: carga + login</strong></td>
+      <td>Abre la URL (tolerando el cold start), espera a que cargue, hace login con la cuenta Pro.</td>
+      <td>App carga sin errores de consola; login exitoso; dashboard con 3 canciones.</td>
+    </tr>
+    <tr>
+      <td class="id">B</td><td><strong>Recorrido completo</strong></td>
+      <td>Canción → letra → invitar co-autor → proponer split → firmar (ambos) → descargar PDF.</td>
+      <td>PDF generado solo tras firmar todos; contiene título, autores, % y fecha.</td>
+    </tr>
+    <tr>
+      <td class="id">C</td><td><strong>Verificación bilingüe</strong></td>
+      <td>Recorre las pantallas principales en EN y en ES, capturando textos.</td>
+      <td>Todas las pantallas traducen; sin claves crudas (ej. <code>label.save</code>) ni texto mezclado.</td>
+    </tr>
+    <tr>
+      <td class="id">D</td><td><strong>Seguridad — IDOR</strong></td>
+      <td>Autenticado como usuario A, pide por ID/URL una canción de B (no co-autor).</td>
+      <td>Respuesta <strong>403</strong> (acceso denegado); sin datos de la canción ajena.</td>
+    </tr>
+    <tr>
+      <td class="id">E</td><td><strong>Seguridad — rate limit login</strong></td>
+      <td>Repite intentos de login fallidos por encima del umbral.</td>
+      <td>Respuesta <strong>429</strong> (too many requests) tras N intentos; login se re-habilita luego.</td>
+    </tr>
+    <tr>
+      <td class="id">F</td><td><strong>Diccionario bilingüe</strong></td>
+      <td>Clic en palabras EN y ES; pide sinónimos, antónimos, rimas y traducción.</td>
+      <td>Devuelve resultados relevantes en ambos idiomas, sin error.</td>
+    </tr>
+    <tr>
+      <td class="id">G</td><td><strong>Pago Pro (test)</strong></td>
+      <td>Como Free, ejecuta el upgrade con la tarjeta 4242.</td>
+      <td>Pago aprobado en modo test; cuenta pasa a Pro; funciones desbloqueadas.</td>
+    </tr>
+    <tr>
+      <td class="id">H</td><td><strong>Rendimiento / cold start</strong></td>
+      <td>Mide el tiempo de la primera carga tras inactividad y de cargas siguientes.</td>
+      <td>Cold start ~30–50 s documentado; cargas posteriores rápidas (&lt; 3 s).</td>
+    </tr>
+    <tr>
+      <td class="id">I</td><td><strong>Responsive</strong></td>
+      <td>Repite smoke test en viewport móvil (375px) y escritorio.</td>
+      <td>Layout usable en ambos; sin cortes ni botones inalcanzables.</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="note">Las pruebas de seguridad D y E ya fueron corregidas y reforzadas (IDOR, rate limiting, JWT obligatorio, CORS seguro). Aquí se <strong>re-verifican</strong> como regresión en cada corrida.</div>
+
+<!-- ============ 5. MATRIZ ============ -->
+<h2 id="s5" class="pb">5. Matriz de casos de prueba</h2>
+<p>Estado: <span class="badge b-pend">Pendiente</span> · <span class="badge b-ok">OK</span> · <span class="badge b-fail">Falla</span>. Responsables: W=Waldo, J=José, C=Co-autor (Usuario 1), F=Free (Usuario 2), A=Agente.</p>
+
+<table class="matrix">
+  <thead>
+    <tr><th>ID</th><th>Módulo</th><th>Caso</th><th>Pasos</th><th>Resultado esperado</th><th>Resp.</th><th>Estado</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="id">AUTH-01</td><td>Auth</td><td>Registro nuevo</td><td>Registrarse con correo/clave nuevos</td><td>Cuenta creada; sesión iniciada</td><td>C</td><td><span class="badge b-pend">Pend.</span></td></tr>
+    <tr><td class="id">AUTH-02</td><td>Auth</td><td>Login válido</td><td>Login con cuenta Pro</td><td>Acceso al dashboard; JWT emitido</td><td>W</td><td><span class="badge b-pend">Pend.</span></td></tr>
+    <tr><td class="id">AUTH-03</td><td>Auth</td><td>Login inválido</td><td>Clave incorrecta</td><td>Error claro; sin sesión</td><td>F</td><td><span class="badge b-pend">Pend.</span></td></tr>
+    <tr><td class="id">AUTH-04</td><td>Auth</td><td>Rate limit</td><td>Varios logins fallidos seguidos</td><td>Respuesta 429 tras el umbral</td><td>A</td><td><span class="badge b-pend">Pend.</span></td></tr>
+    <tr><td class="id">AUTH-05</td><td>Auth</td><td>JWT obligatorio</td><td>Llamar API sin token</td><td>401/403; recurso protegido</td><td>A</td><td><span class="badge b-pend">Pend.</span></td></tr>
+    <tr><td class="id">PROF-01</td><td>Perfil</td><td>Completar perfil</td><td>Editar nombre de autor y datos</td><td>Datos guardados y persistidos</td><td>C</td><td><span class="badge b-pend">Pend.</span></td></tr>
+    <tr><td class="id">DASH-01</td><td>Dashboard</td><td>Tarjetas resumen</td><td>Ver resumen al entrar</td><td>Métricas y 3 canciones sembradas</td><td>W</td><td><span class="badge b-pend">Pend.</span></td></tr>
+    <tr><td class="id">DASH-02</td><td>Dashboard</td><td>Filtros</td><td>Filtrar por firmadas / borrador</td><td>Lista se filtra correctamente</td><td>W</td><td><span class="badge b-pend">Pend.</span></td></tr>
+    <tr><td class="id">DASH-03</td><td>Dashboard</td><td>Tarjeta de canción</td><td>Abrir una tarjeta</td><td>Entra al detalle de la canción</td><td>W</td><td><span class="badge b-pend">Pend.</span></td></tr>
+    <tr><td class="id">EDIT-01</td><td>Editor</td><td>Crear canción</td><td>Nueva canción + título</td><td>Canción creada en borrador</td><td>W</td><td><span class="badge b-pend">Pend.</span></td></tr>
+    <tr><td class="id">EDIT-02</td><td>Editor</td><td>Escribir letra</td><td>Redactar varias líneas</td><td>Texto se guarda automáticamente</td><td>J</td><td><span class="badge b-pend">Pend.</span></td></tr>
+    <tr><td class="id">DICT-01</td><td>Diccionario</td><td>Sinónimos/antónimos</td><td>Clic en palabra</td><td>Panel con sinónimos y antónimos</td><td>J</td><td><span class="badge b-pend">Pend.</span></td></tr>
+    <tr><td class="id">DICT-02</td><td>Diccionario</td><td>Rimas</td><td>Clic en palabra → rimas</td><td>Lista de rimas útil</td><td>J</td><td><span class="badge b-pend">Pend.</span></td></tr>
+    <tr><td class="id">DICT-03</td><td>Diccionario</td><td>Traducir bilingüe</td><td>Palabra EN y palabra ES</td><td>Traducción correcta en ambos</td><td>A</td><td><span class="badge b-pend">Pend.</span></td></tr>
+    <tr><td class="id">COLL-01</td><td>Colaboración</td><td>Invitar co-autor</td><td>Invitar a Usuario 1</td><td>Co-autor añadido a la canción</td><td>W</td><td><span class="badge b-pend">Pend.</span></td></tr>
+    <tr><td class="id">COLL-02</td><td>Colaboración</td><td>Registro de aportes</td><td>Ver contribuciones por autor</td><td>Cada aporte atribuido a su autor</td><td>C</td><td><span class="badge b-pend">Pend.</span></td></tr>
+    <tr><td class="id">SPLIT-01</td><td>Splits</td><td>Proponer split</td><td>Definir 60/40</td><td>Reparto guardado; suma 100%</td><td>W</td><td><span class="badge b-pend">Pend.</span></td></tr>
+    <tr><td class="id">SPLIT-02</td><td>Splits</td><td>Autoría del reparto</td><td>Revisar quién decide %</td><td>Lo deciden autores, no la IA</td><td>J</td><td><span class="badge b-pend">Pend.</span></td></tr>
+    <tr><td class="id">SIGN-01</td><td>Firma</td><td>Firmar (autor 1)</td><td>Firmar estilo DocuSign</td><td>Firma registrada; queda pendiente el otro</td><td>W</td><td><span class="badge b-pend">Pend.</span></td></tr>
+    <tr><td class="id">SIGN-02</td><td>Firma</td><td>Firmar (co-autor)</td><td>Segunda firma</td><td>Proceso completo al firmar todos</td><td>C</td><td><span class="badge b-pend">Pend.</span></td></tr>
+    <tr><td class="id">PDF-01</td><td>PDF</td><td>Bloqueo antes de firmar</td><td>Intentar PDF sin todas las firmas</td><td>PDF NO disponible aún</td><td>W</td><td><span class="badge b-pend">Pend.</span></td></tr>
+    <tr><td class="id">PDF-02</td><td>PDF</td><td>Descargar split sheet</td><td>Descargar tras todas las firmas</td><td>PDF con título, autores, %, fecha, firmas</td><td>C</td><td><span class="badge b-pend">Pend.</span></td></tr>
+    <tr><td class="id">VER-01</td><td>Versiones</td><td>Historial</td><td>Editar y abrir historial</td><td>Versiones anteriores visibles</td><td>W</td><td><span class="badge b-pend">Pend.</span></td></tr>
+    <tr><td class="id">MSG-01</td><td>Mensajes</td><td>Enviar/leer mensajes</td><td>Chat entre co-autores</td><td>Mensajes se envían y muestran</td><td>J</td><td><span class="badge b-pend">Pend.</span></td></tr>
+    <tr><td class="id">LANG-01</td><td>Idioma</td><td>Cambiar EN/ES</td><td>Alternar el selector</td><td>Toda la pantalla se traduce</td><td>W</td><td><span class="badge b-pend">Pend.</span></td></tr>
+    <tr><td class="id">LANG-02</td><td>Idioma</td><td>Sin claves crudas</td><td>Recorrer EN y ES</td><td>Sin <code>key.raw</code> ni texto mezclado</td><td>A</td><td><span class="badge b-pend">Pend.</span></td></tr>
+    <tr><td class="id">PAY-01</td><td>Pago</td><td>Paywall Free</td><td>Acción Pro desde cuenta Free</td><td>Aviso de upgrade correcto</td><td>F</td><td><span class="badge b-pend">Pend.</span></td></tr>
+    <tr><td class="id">PAY-02</td><td>Pago</td><td>Upgrade con 4242</td><td>Pagar con tarjeta test</td><td>Pago OK (test); cuenta pasa a Pro</td><td>F</td><td><span class="badge b-pend">Pend.</span></td></tr>
+    <tr><td class="id">PAY-03</td><td>Pago</td><td>Tarjeta inválida</td><td>Datos de tarjeta erróneos</td><td>Error claro; app no se rompe</td><td>F</td><td><span class="badge b-pend">Pend.</span></td></tr>
+    <tr><td class="id">PLAN-01</td><td>Plan Free</td><td>Límites del Free</td><td>Recorrer restricciones</td><td>Límites claros y aplicados</td><td>F</td><td><span class="badge b-pend">Pend.</span></td></tr>
+    <tr><td class="id">SEC-01</td><td>Seguridad</td><td>IDOR co-autoría</td><td>Abrir canción ajena por ID</td><td>403; sin fuga de datos</td><td>C</td><td><span class="badge b-pend">Pend.</span></td></tr>
+    <tr><td class="id">SEC-02</td><td>Seguridad</td><td>CORS seguro</td><td>Request desde origen no permitido</td><td>Bloqueado por CORS</td><td>A</td><td><span class="badge b-pend">Pend.</span></td></tr>
+    <tr><td class="id">RESP-01</td><td>Responsive</td><td>Móvil</td><td>Recorrido en viewport 375px</td><td>Usable; sin cortes de layout</td><td>F</td><td><span class="badge b-pend">Pend.</span></td></tr>
+    <tr><td class="id">PERF-01</td><td>Rendimiento</td><td>Cold start</td><td>Medir primera carga</td><td>~30–50 s documentado; luego rápido</td><td>A</td><td><span class="badge b-pend">Pend.</span></td></tr>
+  </tbody>
+</table>
+
+<!-- ============ 6. BUGS ============ -->
+<h2 id="s6" class="pb">6. Reporte de bugs</h2>
+<p>Cuando algo falle, repórtalo con esta plantilla. Un bug bien escrito se arregla el doble de rápido.</p>
+
+<h3>Plantilla de bug</h3>
+<div class="card">
+<table>
+  <tbody>
+    <tr><th style="width:170px">Título</th><td>Resumen corto y específico (módulo + qué falla)</td></tr>
+    <tr><th>ID del caso</th><td>Ej. <span class="mono">PDF-02</span> (si aplica)</td></tr>
+    <tr><th>Ambiente</th><td>Staging / URL, navegador, dispositivo (móvil/escritorio), cuenta usada</td></tr>
+    <tr><th>Pasos para reproducir</th><td>1. … 2. … 3. … (numerados y exactos)</td></tr>
+    <tr><th>Resultado esperado</th><td>Qué debería pasar</td></tr>
+    <tr><th>Resultado real</th><td>Qué pasó en realidad (+ mensajes de error / consola)</td></tr>
+    <tr><th>Severidad</th><td><span class="badge b-fail">Crítica</span> <span class="badge b-warn">Alta</span> <span class="badge b-violet">Media</span> <span class="badge b-pend">Baja</span></td></tr>
+    <tr><th>Captura / video</th><td>Adjuntar imagen o clip</td></tr>
+    <tr><th>Reproducible</th><td>Siempre / A veces / Una vez</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Escala de severidad</h3>
+<table>
+  <thead><tr><th>Severidad</th><th>Significado</th><th>Ejemplo</th></tr></thead>
+  <tbody>
+    <tr><td><span class="badge b-fail">Crítica</span></td><td>Bloquea el uso o hay fuga de datos / cobro indebido</td><td>Cualquiera ve canciones ajenas; pago cobra de verdad</td></tr>
+    <tr><td><span class="badge b-warn">Alta</span></td><td>Función principal rota, sin workaround</td><td>No se genera el PDF tras firmar todos</td></tr>
+    <tr><td><span class="badge b-violet">Media</span></td><td>Falla con workaround o afecta a pocos casos</td><td>Un filtro del dashboard no ordena bien</td></tr>
+    <tr><td><span class="badge b-pend">Baja</span></td><td>Cosmético o menor</td><td>Un texto sin traducir en ES; margen desalineado</td></tr>
+  </tbody>
+</table>
+
+<h3>Dónde reportarlos</h3>
+<ul>
+  <li><strong>GitHub Issues</strong> del repo de El Profe (una <em>issue</em> por bug, con etiqueta de severidad y módulo), o</li>
+  <li>una <strong>hoja compartida</strong> (Google Sheets) con las columnas de la plantilla, si el equipo prefiere no tocar GitHub.</li>
+  <li>Regla: un bug = un reporte; adjuntar siempre captura y pasos.</li>
+</ul>
+
+<!-- ============ 7. GO / NO-GO ============ -->
+<h2 id="s7" class="pb">7. Criterios de aceptación (GO / NO-GO)</h2>
+
+<div class="grid2">
+  <div class="card">
+    <h4 style="color:var(--ok);margin-top:.4em;">Must-have (obligatorio para lanzar)</h4>
+    <ul>
+      <li>Registro y login funcionan; JWT obligatorio en rutas protegidas.</li>
+      <li>Crear canción, escribir letra y guardar sin pérdida de datos.</li>
+      <li>Invitar co-autor y registrar contribuciones correctamente.</li>
+      <li>Proponer split (suma 100%, lo deciden los autores).</li>
+      <li>Firma estilo DocuSign de todos los co-autores.</li>
+      <li>PDF del split sheet se genera solo tras todas las firmas, con datos correctos.</li>
+      <li><strong>Seguridad:</strong> IDOR devuelve 403; rate limit 429; CORS seguro.</li>
+      <li>Selector EN/ES sin claves crudas en pantallas principales.</li>
+      <li>Pago Pro con tarjeta test funciona y hace el upgrade.</li>
+      <li>Sin bugs abiertos de severidad Crítica ni Alta.</li>
+      <li>App usable en móvil y escritorio.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4 style="color:var(--violet-dark);margin-top:.4em;">Deseable (no bloquea el lanzamiento)</h4>
+    <ul>
+      <li>Cold start reducido (plan de pago en Render o keep-alive).</li>
+      <li>Diccionario con más rimas/sinónimos de calidad.</li>
+      <li>Mejoras cosméticas y pulido de textos en ES.</li>
+      <li>Historial de versiones con vista de diferencias (diff).</li>
+      <li>Correos transaccionales (invitación, firma completada).</li>
+      <li>Bugs de severidad Media/Baja documentados para la siguiente iteración.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="note"><strong>Regla de decisión:</strong> <span class="badge b-ok">GO</span> solo si TODOS los must-have están en verde y no hay bugs Crítica/Alta abiertos. Cualquier must-have en rojo = <span class="badge b-fail">NO-GO</span>.</div>
+
+<!-- ============ 8. CRONOGRAMA ============ -->
+<h2 id="s8" class="pb">8. Cronograma sugerido</h2>
+<p>Plan de 1 a 2 semanas por fases. Ajustable según disponibilidad del equipo.</p>
+
+<table>
+  <thead><tr><th>Fase</th><th>Días</th><th>Actividad</th><th>Responsables</th></tr></thead>
+  <tbody>
+    <tr><td><strong>0. Preparación</strong></td><td>Día 1</td><td>Montar staging (Opción A o B), variables de entorno, sembrar datos, confirmar cuentas demo</td><td>Waldo + dev</td></tr>
+    <tr><td><strong>1. Smoke + auth</strong></td><td>Días 1–2</td><td>Casos AUTH, PROF, DASH; smoke test de agentes (A, H)</td><td>Waldo, F, Agente</td></tr>
+    <tr><td><strong>2. Núcleo creativo</strong></td><td>Días 3–5</td><td>Editor, diccionario, colaboración, contribuciones (EDIT, DICT, COLL)</td><td>José, Co-autor</td></tr>
+    <tr><td><strong>3. Splits, firma y PDF</strong></td><td>Días 5–7</td><td>SPLIT, SIGN, PDF, VER; recorrido completo (agente B)</td><td>Waldo, Co-autor</td></tr>
+    <tr><td><strong>4. Idioma, pago, seguridad</strong></td><td>Días 8–9</td><td>LANG, PAY, PLAN, SEC, RESP; agentes C, D, E, G, I</td><td>Free, Agente</td></tr>
+    <tr><td><strong>5. Triage y re-test</strong></td><td>Días 10–11</td><td>Corregir bugs Crítica/Alta y re-probar; regresión de seguridad</td><td>Dev + todo el equipo</td></tr>
+    <tr><td><strong>6. Decisión GO/NO-GO</strong></td><td>Día 12</td><td>Revisar matriz y criterios; firmar veredicto de lanzamiento</td><td>Waldo + José</td></tr>
+  </tbody>
+</table>
+
+<div class="foot">
+  El Profe — Plan de Pruebas (QA / UAT) · v1.0 · Documento interno · Ambiente de staging, Stripe en modo prueba.<br>
+  Reparto de regalías decidido siempre por los autores, nunca por la IA.
+</div>
+
+</div>

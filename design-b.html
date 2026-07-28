@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>El Profe — Fair splits, signed paper</title>
+<meta name="description" content="El Profe: co-write songs, log contributions, and sign legal splits ready for ASCAP, BMI, SESAC, and SGAE.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,500;1,9..144,900&family=Space+Mono:wght@400;700&family=Archivo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f3ecdc;
+    --paper-2:#eae0c8;
+    --paper-3:#e2d5b8;
+    --ink:#18130f;
+    --ink-70:rgba(24,19,15,.72);
+    --ink-45:rgba(24,19,15,.45);
+    --ink-20:rgba(24,19,15,.16);
+    --accent:#e2431f;
+    --accent-dark:#a92c11;
+    --accent-ink:#fff4ea;
+    --emerald:#1e6b4e;
+    --gold:#b3821f;
+    --radius:2px;
+    --serif:'Fraunces', serif;
+    --mono:'Space Mono', monospace;
+    --sans:'Archivo', sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+    position:relative;
+  }
+
+  /* ---------- grain overlay ---------- */
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    z-index:9000;
+    pointer-events:none;
+    opacity:.05;
+    mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+
+  ::selection{ background:var(--accent); color:var(--accent-ink); }
+
+  a{ color:inherit; }
+  img{ max-width:100%; display:block; }
+
+  .wrap{
+    max-width:1240px;
+    margin:0 auto;
+    padding:0 clamp(20px, 5vw, 56px);
+  }
+
+  .rule{ height:1px; background:var(--ink); opacity:.16; border:0; margin:0; }
+  .rule-dashed{ height:0; border-top:2px dashed var(--ink-20); }
+
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:12.5px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--accent-dark);
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:7px; height:7px;
+    background:var(--accent);
+    border-radius:50%;
+    display:inline-block;
+  }
+
+  h1,h2,h3{ font-family:var(--serif); margin:0; letter-spacing:-.01em; }
+
+  .btn{
+    font-family:var(--sans);
+    font-weight:700;
+    font-size:15px;
+    letter-spacing:-.01em;
+    padding:13px 24px;
+    border-radius:var(--radius);
+    border:2px solid var(--ink);
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    cursor:pointer;
+    text-decoration:none;
+    background:transparent;
+    color:var(--ink);
+    transition:transform .18s ease, box-shadow .18s ease, background .18s ease, color .18s ease;
+  }
+  .btn-solid{
+    background:var(--ink);
+    color:var(--paper);
+  }
+  .btn-accent{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:var(--accent-ink);
+  }
+  .btn:hover{
+    transform:translate(-3px,-3px);
+    box-shadow:5px 5px 0 var(--ink);
+  }
+  .btn-accent:hover{ box-shadow:5px 5px 0 var(--ink); }
+  .btn:active{ transform:translate(0,0); box-shadow:none; }
+
+  /* ---------- reveal-on-scroll ---------- */
+  .reveal{
+    opacity:0;
+    transform:translateY(28px);
+    transition:opacity .7s cubic-bezier(.16,.8,.24,1), transform .7s cubic-bezier(.16,.8,.24,1);
+  }
+  .reveal.in{ opacity:1; transform:translateY(0); }
+  .reveal-d1{ transition-delay:.08s; }
+  .reveal-d2{ transition-delay:.16s; }
+  .reveal-d3{ transition-delay:.24s; }
+  .reveal-d4{ transition-delay:.32s; }
+
+  /* ================= NAV ================= */
+  header.nav{
+    position:sticky; top:0; z-index:500;
+    background:var(--paper);
+    border-bottom:1px solid var(--ink-20);
+  }
+  .nav-inner{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px clamp(20px,5vw,56px);
+    max-width:1240px; margin:0 auto;
+  }
+  .nav-logo{ display:flex; align-items:center; gap:12px; }
+  .nav-logo img{ height:30px; width:auto; }
+  .nav-links{
+    display:flex; gap:34px; list-style:none; margin:0; padding:0;
+    font-family:var(--sans); font-weight:600; font-size:15px;
+  }
+  .nav-links a{
+    text-decoration:none; position:relative; padding-bottom:3px;
+  }
+  .nav-links a::after{
+    content:""; position:absolute; left:0; bottom:0; width:0; height:2px;
+    background:var(--accent); transition:width .22s ease;
+  }
+  .nav-links a:hover::after{ width:100%; }
+  .nav-actions{ display:flex; align-items:center; gap:12px; }
+  .nav-actions .btn{ padding:10px 18px; font-size:14px; }
+  .nav-toggle{ display:none; }
+
+  /* language toggle pill */
+  .lang-toggle{
+    display:flex; align-items:center;
+    border:2px solid var(--ink);
+    border-radius:20px;
+    overflow:hidden;
+    font-family:var(--mono);
+    font-weight:700;
+    font-size:12px;
+    letter-spacing:.04em;
+    flex-shrink:0;
+  }
+  .lang-toggle button{
+    background:none; border:0; cursor:pointer;
+    padding:8px 14px;
+    color:var(--ink-45);
+    font-family:var(--mono); font-weight:700; font-size:12px;
+    transition:background .18s ease, color .18s ease;
+  }
+  .lang-toggle button + button{ border-left:2px solid var(--ink); }
+  .lang-toggle button.active{ background:var(--ink); color:var(--paper); }
+  .lang-toggle button:hover:not(.active){ color:var(--ink); }
+  .lang-toggle button:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
+  .cta-final .lang-toggle{ border-color:var(--paper); }
+  .cta-final .lang-toggle button{ color:rgba(243,236,220,.55); }
+  .cta-final .lang-toggle button + button{ border-left-color:var(--paper); }
+  .cta-final .lang-toggle button.active{ background:var(--paper); color:var(--ink); }
+
+  @media (max-width:860px){
+    .nav-links{ display:none; }
+    .nav-actions .btn.ghost-hide{ display:none; }
+  }
+
+  /* ================= HERO ================= */
+  .hero{
+    position:relative;
+    padding:clamp(48px,8vw,92px) 0 clamp(40px,6vw,72px);
+    overflow:hidden;
+  }
+  .hero-grid{
+    display:grid;
+    grid-template-columns:1.15fr .85fr;
+    gap:48px;
+    align-items:end;
+  }
+  @media (max-width:960px){ .hero-grid{ grid-template-columns:1fr; } }
+
+  .hero-eyebrow{ margin-bottom:22px; }
+  .headline{
+    font-size:clamp(46px, 8.4vw, 104px);
+    font-weight:900;
+    line-height:.96;
+    margin:0 0 26px;
+  }
+  .headline .word{
+    display:inline-block;
+    transform:translateY(120%) rotate(4deg);
+    opacity:0;
+    transition:transform .16s ease;
+  }
+  .headline.play .word{
+    animation:wordIn .82s cubic-bezier(.2,.9,.25,1) forwards;
+  }
+  .headline .word:hover{ color:var(--accent); transform:rotate(-2.5deg) scale(1.03); }
+  @keyframes wordIn{
+    to{ transform:translateY(0) rotate(0deg); opacity:1; }
+  }
+  .headline em{
+    font-style:italic;
+    font-weight:500;
+    color:var(--accent);
+  }
+
+  .hero-sub{
+    font-size:clamp(16px,2vw,19px);
+    color:var(--ink-70);
+    max-width:46ch;
+    line-height:1.55;
+    margin:0 0 30px;
+  }
+  .hero-ctas{ display:flex; gap:14px; flex-wrap:wrap; margin-bottom:22px; }
+  .hero-trust{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--ink-45);
+    letter-spacing:.02em;
+  }
+  .hero-trust b{ color:var(--ink); }
+
+  /* split-sheet interactive widget */
+  .split-card{
+    background:var(--paper);
+    border:2px solid var(--ink);
+    box-shadow:8px 8px 0 var(--ink-20);
+    padding:22px 22px 26px;
+  }
+  .split-card-top{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:16px;
+  }
+  .split-title{ font-family:var(--mono); font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-45); }
+  .split-badge{
+    font-family:var(--mono); font-size:11px; color:var(--emerald); border:1px solid var(--emerald);
+    padding:2px 8px; border-radius:20px;
+  }
+  .split-song{ font-family:var(--serif); font-weight:700; font-size:20px; margin-bottom:14px; }
+  .split-bar{
+    height:46px; width:100%;
+    display:flex; border:2px solid var(--ink); overflow:hidden;
+    cursor:ew-resize; user-select:none; touch-action:none;
+    position:relative;
+  }
+  .split-seg{ height:100%; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-weight:700; font-size:13px; color:var(--paper); transition:width .04s linear; }
+  .seg-1{ background:var(--accent); }
+  .seg-2{ background:var(--ink); }
+  .seg-3{ background:var(--emerald); }
+  .split-handle{
+    position:absolute; top:0; bottom:0; width:6px; background:var(--paper);
+    border-left:2px solid var(--ink); border-right:2px solid var(--ink);
+    transform:translateX(-3px);
+  }
+  .split-legend{ display:flex; justify-content:space-between; margin-top:12px; font-family:var(--mono); font-size:11.5px; color:var(--ink-70); }
+  .split-legend span::before{ content:"●"; margin-right:5px; }
+  .split-legend span:nth-child(1)::before{ color:var(--accent); }
+  .split-legend span:nth-child(2)::before{ color:var(--ink); }
+  .split-legend span:nth-child(3)::before{ color:var(--emerald); }
+  .split-hint{ margin-top:14px; font-family:var(--mono); font-size:11px; color:var(--ink-45); }
+  .split-total{ margin-top:8px; font-family:var(--mono); font-size:11.5px; font-weight:700; color:var(--emerald); }
+
+  /* ================= MARQUEE STRIP ================= */
+  .marquee-wrap{
+    border-top:1px solid var(--ink-20);
+    border-bottom:1px solid var(--ink-20);
+    background:var(--paper-2);
+    padding:16px 0;
+    overflow:hidden;
+    white-space:nowrap;
+  }
+  .marquee-label{
+    font-family:var(--mono); font-size:11.5px; color:var(--ink-45);
+    text-align:center; letter-spacing:.14em; text-transform:uppercase; margin-bottom:10px;
+  }
+  .marquee-track{
+    display:inline-flex;
+    animation:scroll 26s linear infinite;
+  }
+  .marquee-track span{
+    font-family:var(--serif); font-style:italic; font-weight:600;
+    font-size:clamp(20px,3vw,30px);
+    margin-right:36px;
+    color:var(--ink-70);
+  }
+  .marquee-track span b{ color:var(--accent); font-style:normal; font-weight:900; margin-right:36px;}
+  @keyframes scroll{
+    from{ transform:translateX(0); }
+    to{ transform:translateX(-50%); }
+  }
+
+  /* ================= SECTION shells ================= */
+  section{ padding:clamp(56px,8vw,100px) 0; position:relative; }
+  .section-head{ margin-bottom:clamp(36px,5vw,56px); display:flex; justify-content:space-between; align-items:flex-end; gap:24px; flex-wrap:wrap; }
+  .section-title{ font-size:clamp(34px,5vw,54px); font-weight:800; }
+  .section-num{ font-family:var(--mono); font-size:13px; color:var(--ink-45); }
+  .section-note{ max-width:38ch; color:var(--ink-70); font-size:15.5px; line-height:1.6; }
+
+  /* ================= COMO FUNCIONA ================= */
+  .steps{ display:grid; grid-template-columns:repeat(4,1fr); gap:0; }
+  .step{ padding:28px 22px 0; border-left:1px solid var(--ink-20); position:relative; }
+  .step:first-child{ border-left:0; padding-left:0; }
+  .step-num{ font-family:var(--serif); font-style:italic; font-weight:600; font-size:44px; color:var(--accent); line-height:1; margin-bottom:16px; }
+  .step h3{ font-size:20px; font-weight:700; margin-bottom:10px; }
+  .step p{ color:var(--ink-70); font-size:14.5px; line-height:1.6; margin:0; }
+  @media (max-width:860px){
+    .steps{ grid-template-columns:1fr 1fr; row-gap:32px; }
+    .step:nth-child(3){ border-left:0; padding-left:0; }
+  }
+  @media (max-width:560px){
+    .steps{ grid-template-columns:1fr; }
+    .step{ border-left:0; padding-left:0; border-top:1px solid var(--ink-20); padding-top:24px; }
+    .step:first-child{ border-top:0; padding-top:0; }
+  }
+
+  /* ================= FUNCIONES ================= */
+  .features-grid{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:2px;
+    background:var(--ink-20); border:1px solid var(--ink-20);
+  }
+  @media (max-width:860px){ .features-grid{ grid-template-columns:1fr 1fr; } }
+  @media (max-width:560px){ .features-grid{ grid-template-columns:1fr; } }
+  .feature-card{
+    background:var(--paper);
+    padding:30px 26px;
+    transition:transform .2s ease, background .2s ease, box-shadow .2s ease;
+    position:relative;
+  }
+  .feature-card:hover{
+    background:var(--paper-2);
+    transform:translateY(-4px);
+    box-shadow:0 10px 0 -6px var(--ink-20);
+    z-index:2;
+  }
+  .feature-mark{ font-family:var(--mono); font-size:12px; color:var(--accent-dark); margin-bottom:14px; display:block; }
+  .feature-card h3{ font-size:19px; font-weight:700; margin-bottom:10px; }
+  .feature-card p{ font-size:14px; color:var(--ink-70); line-height:1.6; margin:0; }
+
+  /* ================= COMPARACION ================= */
+  .compare-table{ width:100%; border-collapse:collapse; font-size:15px; }
+  .compare-table th, .compare-table td{
+    padding:16px 14px; text-align:left; border-bottom:1px solid var(--ink-20);
+  }
+  .compare-table thead th{
+    font-family:var(--mono); font-size:12px; text-transform:uppercase; letter-spacing:.06em;
+    color:var(--ink-45); font-weight:400; border-bottom:2px solid var(--ink);
+  }
+  .compare-table tbody th{ font-weight:600; }
+  .compare-table td{ color:var(--ink-70); }
+  .col-profe{ background:var(--paper-2); font-weight:700; color:var(--ink); position:relative; }
+  .col-profe::before{ content:"EL PROFE"; }
+  .tick{ color:var(--emerald); font-weight:800; }
+  .cross{ color:var(--ink-45); }
+  @media (max-width:640px){
+    .compare-table{ font-size:12.5px; }
+    .compare-table th, .compare-table td{ padding:10px 6px; }
+  }
+
+  /* ================= PRECIOS ================= */
+  .pricing-grid{ display:grid; grid-template-columns:1fr 1fr; gap:26px; }
+  @media (max-width:760px){ .pricing-grid{ grid-template-columns:1fr; } }
+  .price-card{
+    border:2px solid var(--ink);
+    background:var(--paper);
+    padding:34px 30px;
+    position:relative;
+    background-image:radial-gradient(circle, var(--ink-20) 1.6px, transparent 1.6px);
+    background-size:14px 14px;
+    background-position:top left;
+    background-repeat:repeat-x;
+    background-origin:border-box;
+  }
+  .price-card{ background:var(--paper); }
+  .price-card::before, .price-card::after{
+    content:""; position:absolute; width:20px; height:20px; background:var(--paper);
+    border:2px solid var(--ink); border-radius:50%; top:50%; transform:translateY(-50%);
+  }
+  .price-card::before{ left:-11px; }
+  .price-card::after{ right:-11px; }
+  .price-card.pro{ background:var(--ink); color:var(--paper); }
+  .price-card.pro::before, .price-card.pro::after{ background:var(--ink); }
+  .price-plan{ font-family:var(--mono); font-size:13px; letter-spacing:.1em; text-transform:uppercase; margin-bottom:10px; color:var(--accent-dark); }
+  .price-card.pro .price-plan{ color:var(--accent); }
+  .price-amount{ font-family:var(--serif); font-weight:900; font-size:56px; margin-bottom:4px; display:flex; align-items:baseline; gap:6px; }
+  .price-amount span{ font-family:var(--mono); font-size:15px; font-weight:400; opacity:.6; }
+  .price-desc{ font-size:14.5px; margin-bottom:22px; color:var(--ink-70); }
+  .price-card.pro .price-desc{ color:rgba(243,236,220,.72); }
+  .price-list{ list-style:none; margin:0 0 26px; padding:0; font-size:14.5px; }
+  .price-list li{ padding:9px 0; border-top:1px dashed var(--ink-20); display:flex; gap:10px; }
+  .price-card.pro .price-list li{ border-top:1px dashed rgba(243,236,220,.2); }
+  .price-list li::before{ content:"—"; color:var(--accent); }
+  .price-card .btn{ width:100%; justify-content:center; }
+
+  /* ================= FAQ ================= */
+  .faq-item{ border-bottom:1px solid var(--ink-20); }
+  .faq-item:first-child{ border-top:1px solid var(--ink-20); }
+  .faq-q{
+    width:100%; text-align:left; background:none; border:0; cursor:pointer;
+    padding:22px 4px; display:flex; justify-content:space-between; align-items:center; gap:16px;
+    font-family:var(--serif); font-weight:600; font-size:clamp(17px,2.2vw,21px); color:var(--ink);
+  }
+  .faq-q .q-text{ flex:1; }
+  .faq-q .plus{ font-family:var(--mono); font-size:22px; color:var(--accent); transition:transform .25s ease; flex-shrink:0; }
+  .faq-item.open .plus{ transform:rotate(45deg); }
+  .faq-a{
+    max-height:0; overflow:hidden; transition:max-height .32s ease;
+    font-size:15px; color:var(--ink-70); line-height:1.65;
+  }
+  .faq-a-inner{ padding:0 4px 24px; max-width:64ch; }
+
+  /* ================= CTA FINAL (dark) ================= */
+  .cta-final{
+    background:var(--ink); color:var(--paper);
+    padding:clamp(64px,10vw,120px) 0;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+  }
+  .cta-final::before{
+    content:""; position:absolute; inset:0;
+    background-image:radial-gradient(circle, rgba(243,236,220,.09) 1.5px, transparent 1.5px);
+    background-size:22px 22px;
+    pointer-events:none;
+  }
+  .cta-final .eyebrow{ color:var(--accent); }
+  .cta-final .eyebrow::before{ background:var(--accent); }
+  .cta-title{
+    font-size:clamp(38px,7vw,80px); font-weight:900; line-height:1.02; margin:20px 0 22px;
+  }
+  .cta-title em{ color:var(--accent); font-style:italic; font-weight:500; }
+  .cta-final p.lead{ color:rgba(243,236,220,.7); max-width:50ch; margin:0 auto 34px; font-size:16.5px; }
+  .cta-final .btn{ border-color:var(--paper); color:var(--paper); }
+  .cta-final .btn:hover{ box-shadow:5px 5px 0 var(--accent); }
+  .cta-final .btn-accent{ background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
+  .cta-actions{ display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin-bottom:34px; }
+  .cta-final .nav-logo img{ margin:0 auto 30px; }
+  .cta-final .lang-toggle{ margin:0 auto; }
+  .cta-lang-wrap{ display:flex; justify-content:center; }
+
+  /* ================= FOOTER ================= */
+  footer{ padding:44px 0 34px; }
+  .footer-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:24px; flex-wrap:wrap; margin-bottom:28px; }
+  .footer-logo img{ height:26px; margin-bottom:14px; }
+  .footer-tag{ font-size:14px; color:var(--ink-70); max-width:34ch; }
+  .footer-cols{ display:flex; gap:56px; flex-wrap:wrap; }
+  .footer-col h4{ font-family:var(--mono); font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-45); margin:0 0 12px; font-weight:400;}
+  .footer-col ul{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:9px; font-size:14px; }
+  .footer-col a{ text-decoration:none; }
+  .footer-col a:hover{ color:var(--accent); }
+  .footer-bottom{
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;
+    font-family:var(--mono); font-size:11.5px; color:var(--ink-45); padding-top:20px; border-top:1px solid var(--ink-20);
+  }
+
+  @media (max-width:640px){
+    .footer-top, .footer-bottom{ flex-direction:column; align-items:flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-inner">
+    <div class="nav-logo">
+      <img src="https://el-profe.onrender.com/logo-black.png" alt="El Profe">
+    </div>
+    <nav>
+      <ul class="nav-links">
+        <li><a href="#como-funciona" data-i18n="nav.how">How it works</a></li>
+        <li><a href="#funciones" data-i18n="nav.features">Features</a></li>
+        <li><a href="#precios" data-i18n="nav.pricing">Pricing</a></li>
+        <li><a href="#faq" data-i18n="nav.faq">FAQ</a></li>
+      </ul>
+    </nav>
+    <div class="nav-actions">
+      <a href="#" class="btn ghost-hide" data-i18n="nav.login">Log in</a>
+      <a href="#precios" class="btn btn-accent" data-i18n="nav.cta">Start for free</a>
+      <div class="lang-toggle" role="group" aria-label="Language / Idioma">
+        <button type="button" data-lang="en" class="active">EN</button>
+        <button type="button" data-lang="es">ES</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div>
+        <div class="eyebrow hero-eyebrow" data-i18n="hero.eyebrow">Platform for songwriters — 2026 edition</div>
+        <h1 class="headline" id="headline" data-i18n="hero.headline"><span class="word">Your</span> <span class="word">song,</span><br>
+          <span class="word">your</span> <span class="word"><em>split</em></span><br>
+          <span class="word">rules.</span></h1>
+        <p class="hero-sub" data-i18n="hero.sub">El Profe is the studio where you co-write, log who contributed which line, and sign a legal split sheet — ready for ASCAP, BMI, SESAC, or SGAE. The percentages are decided by the writers. Never an AI.</p>
+        <div class="hero-ctas">
+          <a href="#precios" class="btn btn-accent" data-i18n="hero.cta.primary">Start for free →</a>
+          <a href="#como-funciona" class="btn" data-i18n="hero.cta.secondary">See how it works</a>
+        </div>
+        <p class="hero-trust" data-i18n="hero.trust">— <b>No credit card.</b> Legal export in minutes. Built by and for independent songwriters.</p>
+      </div>
+
+      <div class="reveal reveal-d2">
+        <div class="split-card">
+          <div class="split-card-top">
+            <span class="split-title" data-i18n="split.title">Live split sheet</span>
+            <span class="split-badge" data-i18n="split.badge">drag to split</span>
+          </div>
+          <div class="split-song" data-i18n="split.song">"Neon Lights" — demo</div>
+          <div class="split-bar" id="splitBar">
+            <div class="split-seg seg-1" id="seg1" style="width:45%">45%</div>
+            <div class="split-seg seg-2" id="seg2" style="width:30%">30%</div>
+            <div class="split-seg seg-3" id="seg3" style="width:25%">25%</div>
+            <div class="split-handle" id="handle1" style="left:45%"></div>
+            <div class="split-handle" id="handle2" style="left:75%"></div>
+          </div>
+          <div class="split-legend">
+            <span data-i18n="split.legend.you">You (lyrics)</span>
+            <span data-i18n="split.legend.co">Co-writer (music)</span>
+            <span data-i18n="split.legend.producer">Producer</span>
+          </div>
+          <p class="split-total" id="splitTotal">Total: 100%</p>
+          <p class="split-hint" data-i18n="split.hint">This is how a real split gets negotiated. Once everyone agrees, it's signed and exported.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="marquee-wrap">
+  <div class="marquee-label" data-i18n="marquee.label">Ready to export to</div>
+  <div class="marquee-track">
+    <span><b>ASCAP</b> SESAC <b>BMI</b> SGAE <b>ASCAP</b> SESAC <b>BMI</b> SGAE</span>
+    <span><b>ASCAP</b> SESAC <b>BMI</b> SGAE <b>ASCAP</b> SESAC <b>BMI</b> SGAE</span>
+  </div>
+</div>
+
+<section id="como-funciona">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <h2 class="section-title" data-i18n="como.title">How it works</h2>
+      <span class="section-num" data-i18n="como.num">§ 01 — Process</span>
+    </div>
+    <div class="steps">
+      <div class="step reveal reveal-d1">
+        <div class="step-num">01</div>
+        <h3 data-i18n="step1.title">Write</h3>
+        <p data-i18n="step1.body">Open a co-writing session and work on the same lyric in real time, verse by verse.</p>
+      </div>
+      <div class="step reveal reveal-d2">
+        <div class="step-num">02</div>
+        <h3 data-i18n="step2.title">Log contributions</h3>
+        <p data-i18n="step2.body">El Profe tracks which character each writer typed — the objective basis for negotiating the split.</p>
+      </div>
+      <div class="step reveal reveal-d3">
+        <div class="step-num">03</div>
+        <h3 data-i18n="step3.title">Propose a split</h3>
+        <p data-i18n="step3.body">Drag the percentages between writers until the split feels fair to everyone.</p>
+      </div>
+      <div class="step reveal reveal-d4">
+        <div class="step-num">04</div>
+        <h3 data-i18n="step4.title">Sign and export</h3>
+        <p data-i18n="step4.body">A DocuSign-style binding signature and a split sheet PDF ready for your performing rights organization.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="funciones">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <h2 class="section-title" data-i18n="features.title">Features</h2>
+      <p class="section-note" data-i18n="features.note">Everything a songwriter needs to write as a team and stay protected on paper.</p>
+    </div>
+    <div class="features-grid reveal">
+      <div class="feature-card">
+        <span class="feature-mark" data-i18n="feat1.mark">01 · Co-writing</span>
+        <h3 data-i18n="feat1.title">Write at the same time</h3>
+        <p data-i18n="feat1.body">Live sessions with per-writer cursors, so no one steps on a verse or loses an idea in a chat.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-mark" data-i18n="feat2.mark">02 · Traceability</span>
+        <h3 data-i18n="feat2.title">Character-level tracking</h3>
+        <p data-i18n="feat2.body">Every word stays attributed to its author. Clear evidence when it's time to split.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-mark" data-i18n="feat3.mark">03 · Manual splits</span>
+        <h3 data-i18n="feat3.title">The percentages, yours</h3>
+        <p data-i18n="feat3.body">No algorithm decides your split. You negotiate, you adjust, you decide.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-mark" data-i18n="feat4.mark">04 · Signatures</span>
+        <h3 data-i18n="feat4.title">Binding signatures</h3>
+        <p data-i18n="feat4.body">Every writer signs their own split sheet with legal validity, just like DocuSign.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-mark" data-i18n="feat5.mark">05 · Versions</span>
+        <h3 data-i18n="feat5.title">Full history</h3>
+        <p data-i18n="feat5.body">Go back to any earlier draft. Nothing gets lost between the idea and the final version.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-mark" data-i18n="feat6.mark">06 · Dictionary</span>
+        <h3 data-i18n="feat6.title">Bilingual rhymes</h3>
+        <p data-i18n="feat6.body">Search rhymes and synonyms in Spanish and English without leaving the lyric you're writing.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="comparacion">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <h2 class="section-title" data-i18n="compare.title">Paper, lawyer, or El Profe</h2>
+      <span class="section-num" data-i18n="compare.num">§ 02 — Comparison</span>
+    </div>
+    <div class="reveal" style="overflow-x:auto;">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th style="width:34%">&nbsp;</th>
+            <th data-i18n="compare.th.sheet">Loose sheet</th>
+            <th data-i18n="compare.th.lawyer">Lawyer</th>
+            <th class="col-profe">El Profe</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th data-i18n="compare.row.cost.label">Cost</th>
+            <td data-i18n="compare.row.cost.sheet">Free, but no backing</td>
+            <td data-i18n="compare.row.cost.lawyer">$300 – $1,200 per song</td>
+            <td class="col-profe" data-i18n="compare.row.cost.profe">From $0</td>
+          </tr>
+          <tr>
+            <th data-i18n="compare.row.time.label">Time</th>
+            <td data-i18n="compare.row.time.sheet">Minutes, no structure</td>
+            <td data-i18n="compare.row.time.lawyer">Days or weeks</td>
+            <td class="col-profe" data-i18n="compare.row.time.profe">Minutes, with structure</td>
+          </tr>
+          <tr>
+            <th data-i18n="compare.row.tracking.label">Contribution log</th>
+            <td class="cross" data-i18n="compare.row.tracking.sheet">No</td>
+            <td data-i18n="compare.row.tracking.lawyer">Manual</td>
+            <td class="col-profe" data-i18n="compare.row.tracking.profe"><span class="tick">Yes</span>, automatic</td>
+          </tr>
+          <tr>
+            <th data-i18n="compare.row.signature.label">Binding signature</th>
+            <td class="cross" data-i18n="compare.row.signature.sheet">No</td>
+            <td data-i18n="compare.row.signature.lawyer"><span class="tick">Yes</span></td>
+            <td class="col-profe" data-i18n="compare.row.signature.profe"><span class="tick">Yes</span></td>
+          </tr>
+          <tr>
+            <th data-i18n="compare.row.export.label">PRO export</th>
+            <td class="cross" data-i18n="compare.row.export.sheet">No</td>
+            <td data-i18n="compare.row.export.lawyer">Depends on the lawyer</td>
+            <td class="col-profe" data-i18n="compare.row.export.profe"><span class="tick">Yes</span>, ready format</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="precios">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <h2 class="section-title" data-i18n="pricing.title">Pricing</h2>
+      <span class="section-num" data-i18n="pricing.num">§ 03 — Plans</span>
+    </div>
+    <div class="pricing-grid reveal">
+      <div class="price-card">
+        <div class="price-plan">Free</div>
+        <div class="price-amount" data-i18n="free.amount">$0<span>/ forever</span></div>
+        <p class="price-desc" data-i18n="free.desc">To try the full flow with your first song.</p>
+        <ul class="price-list">
+          <li data-i18n="free.item1">1 active project</li>
+          <li data-i18n="free.item2">Real-time co-writing</li>
+          <li data-i18n="free.item3">Character-level contribution log</li>
+          <li data-i18n="free.item4">1 signed split sheet per month</li>
+        </ul>
+        <a href="#" class="btn" data-i18n="free.cta">Create free account</a>
+      </div>
+      <div class="price-card pro">
+        <div class="price-plan">Pro</div>
+        <div class="price-amount" data-i18n="pro.amount">$19<span>/ month</span></div>
+        <p class="price-desc" data-i18n="pro.desc">For songwriters and teams who release often.</p>
+        <ul class="price-list">
+          <li data-i18n="pro.item1">Unlimited projects</li>
+          <li data-i18n="pro.item2">Full version history</li>
+          <li data-i18n="pro.item3">Unlimited signatures and exports</li>
+          <li data-i18n="pro.item4">Bilingual rhyme dictionary</li>
+          <li data-i18n="pro.item5">Priority support</li>
+        </ul>
+        <a href="#" class="btn btn-accent" data-i18n="pro.cta">Start Pro</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap" style="max-width:920px;">
+    <div class="section-head reveal">
+      <h2 class="section-title" data-i18n="faq.title">Frequently asked questions</h2>
+      <span class="section-num" data-i18n="faq.num">§ 04 — FAQ</span>
+    </div>
+    <div class="reveal">
+      <div class="faq-item open">
+        <button class="faq-q" type="button">
+          <span class="q-text" data-i18n="faq.q1">Is the split sheet actually legally valid?</span>
+          <span class="plus">+</span>
+        </button>
+        <div class="faq-a">
+          <div class="faq-a-inner" data-i18n="faq.a1">Yes. Each writer signs with a binding electronic signature, just like DocuSign, and the resulting PDF follows the format accepted by performing rights organizations like ASCAP, BMI, SESAC, and SGAE.</div>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" type="button">
+          <span class="q-text" data-i18n="faq.q2">Who decides the split percentages?</span>
+          <span class="plus">+</span>
+        </button>
+        <div class="faq-a">
+          <div class="faq-a-inner" data-i18n="faq.a2">Always the writers. El Profe objectively logs who wrote what, but the final percentage negotiation is up to you, dragging the bar until you reach an agreement.</div>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" type="button">
+          <span class="q-text" data-i18n="faq.q3">Can I co-write with someone who doesn't have a Pro account?</span>
+          <span class="plus">+</span>
+        </button>
+        <div class="faq-a">
+          <div class="faq-a-inner" data-i18n="faq.a3">Yes. Any collaborator can join a session with a free account; only whoever creates the project needs the plan that matches their song volume.</div>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" type="button">
+          <span class="q-text" data-i18n="faq.q4">What languages does the rhyme dictionary support?</span>
+          <span class="plus">+</span>
+        </button>
+        <div class="faq-a">
+          <div class="faq-a-inner" data-i18n="faq.a4">Spanish and English, built for bilingual songwriters who jump between languages within the same song.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta-final">
+  <div class="wrap">
+    <img src="https://el-profe.onrender.com/logo-white.png" alt="El Profe" style="height:32px; margin:0 auto 28px;">
+    <div class="eyebrow" style="justify-content:center;" data-i18n="cta.eyebrow">Start today</div>
+    <h2 class="cta-title" data-i18n="cta.title">Write the song.<br><em>Sign the paper.</em></h2>
+    <p class="lead" data-i18n="cta.lead">No loose sheets, no lawyers by the hour. Just your music and a split everyone signed off on.</p>
+    <div class="cta-actions">
+      <a href="#precios" class="btn btn-accent" data-i18n="hero.cta.primary">Start for free →</a>
+      <a href="#como-funciona" class="btn" data-i18n="hero.cta.secondary">See how it works</a>
+    </div>
+    <div class="cta-lang-wrap">
+      <div class="lang-toggle" role="group" aria-label="Language / Idioma">
+        <button type="button" data-lang="en" class="active">EN</button>
+        <button type="button" data-lang="es">ES</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-top">
+      <div class="footer-logo">
+        <img src="https://el-profe.onrender.com/logo-black.png" alt="El Profe">
+        <p class="footer-tag" data-i18n="footer.tag">The studio where songwriters write, log, and sign their splits.</p>
+      </div>
+      <div class="footer-cols">
+        <div class="footer-col">
+          <h4 data-i18n="footer.col.product">Product</h4>
+          <ul>
+            <li><a href="#como-funciona" data-i18n="nav.how">How it works</a></li>
+            <li><a href="#funciones" data-i18n="nav.features">Features</a></li>
+            <li><a href="#precios" data-i18n="nav.pricing">Pricing</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4 data-i18n="footer.col.legal">Legal</h4>
+          <ul>
+            <li><a href="#" data-i18n="footer.link.terms">Terms</a></li>
+            <li><a href="#" data-i18n="footer.link.privacy">Privacy</a></li>
+            <li><a href="#" data-i18n="footer.link.template">Sample split sheet</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4 data-i18n="footer.col.company">Company</h4>
+          <ul>
+            <li><a href="#" data-i18n="footer.link.about">About El Profe</a></li>
+            <li><a href="#" data-i18n="footer.link.contact">Contact</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="rule-dashed"></div>
+    <div class="footer-bottom">
+      <span data-i18n="footer.copyright">© 2026 El Profe. All rights reserved.</span>
+      <span data-i18n="footer.variant">Variant B — editorial mockup · design-b.html</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // ---------------------------------------------------------------
+  // i18n dictionary — EN is canonical/default, ES is neutral tuteo
+  // ---------------------------------------------------------------
+  const I18N = {
+    'nav.how': { en:'How it works', es:'Cómo funciona' },
+    'nav.features': { en:'Features', es:'Funciones' },
+    'nav.pricing': { en:'Pricing', es:'Precios' },
+    'nav.faq': { en:'FAQ', es:'Preguntas' },
+    'nav.login': { en:'Log in', es:'Iniciar sesión' },
+    'nav.cta': { en:'Start for free', es:'Empezar gratis' },
+
+    'hero.eyebrow': { en:'Platform for songwriters — 2026 edition', es:'Plataforma para compositores — edición 2026' },
+    'hero.headline': {
+      en:'<span class="word">Your</span> <span class="word">song,</span><br>\n          <span class="word">your</span> <span class="word"><em>split</em></span><br>\n          <span class="word">rules.</span>',
+      es:'<span class="word">Tu</span> <span class="word">canción,</span><br>\n          <span class="word">tus</span> <span class="word"><em>reglas</em></span> <span class="word">de</span><br>\n          <span class="word">reparto.</span>'
+    },
+    'hero.sub': {
+      en:"El Profe is the studio where you co-write, log who contributed which line, and sign a legal split sheet — ready for ASCAP, BMI, SESAC, or SGAE. The percentages are decided by the writers. Never an AI.",
+      es:'El Profe es el estudio donde co-escribes, registras quién aportó qué línea y firmas un split sheet legal — listo para ASCAP, BMI, SESAC o SGAE. Los porcentajes los deciden los autores. Nunca una IA.'
+    },
+    'hero.cta.primary': { en:'Start for free →', es:'Empezar gratis →' },
+    'hero.cta.secondary': { en:'See how it works', es:'Ver cómo funciona' },
+    'hero.trust': {
+      en:'— <b>No credit card.</b> Legal export in minutes. Built by and for independent songwriters.',
+      es:'— <b>Sin tarjeta de crédito.</b> Exportación legal en minutos. Hecho por y para compositores independientes.'
+    },
+
+    'split.title': { en:'Live split sheet', es:'Split sheet en vivo' },
+    'split.badge': { en:'drag to split', es:'arrastra para repartir' },
+    'split.song': { en:'"Neon Lights" — demo', es:'"Luces de Neón" — demo' },
+    'split.legend.you': { en:'You (lyrics)', es:'Tú (letra)' },
+    'split.legend.co': { en:'Co-writer (music)', es:'Co-autor (música)' },
+    'split.legend.producer': { en:'Producer', es:'Productor' },
+    'split.hint': {
+      en:"This is how a real split gets negotiated. Once everyone agrees, it's signed and exported.",
+      es:'Así de simple se negocia un split real. Cuando todos estén de acuerdo, se firma y se exporta.'
+    },
+
+    'marquee.label': { en:'Ready to export to', es:'Listo para exportar a' },
+
+    'como.title': { en:'How it works', es:'Cómo funciona' },
+    'como.num': { en:'§ 01 — Process', es:'§ 01 — Proceso' },
+    'step1.title': { en:'Write', es:'Escribe' },
+    'step1.body': { en:'Open a co-writing session and work on the same lyric in real time, verse by verse.', es:'Abre una sesión de co-escritura y trabajen sobre la misma letra en tiempo real, verso por verso.' },
+    'step2.title': { en:'Log contributions', es:'Registra aportes' },
+    'step2.body': { en:'El Profe tracks which character each writer typed — the objective basis for negotiating the split.', es:'El Profe rastrea qué carácter escribió cada quién — la base objetiva para negociar el split.' },
+    'step3.title': { en:'Propose a split', es:'Propón split' },
+    'step3.body': { en:'Drag the percentages between writers until the split feels fair to everyone.', es:'Arrastra los porcentajes entre los autores hasta que la repartición se sienta justa para todos.' },
+    'step4.title': { en:'Sign and export', es:'Firmen y exporten' },
+    'step4.body': { en:'A DocuSign-style binding signature and a split sheet PDF ready for your performing rights organization.', es:'Firma vinculante estilo DocuSign y un PDF de split sheet listo para tu sociedad de gestión.' },
+
+    'features.title': { en:'Features', es:'Funciones' },
+    'features.note': { en:'Everything a songwriter needs to write as a team and stay protected on paper.', es:'Todo lo que necesita un compositor para escribir en equipo y quedar protegido en papel.' },
+    'feat1.mark': { en:'01 · Co-writing', es:'01 · Co-escritura' },
+    'feat1.title': { en:'Write at the same time', es:'Escriban a la vez' },
+    'feat1.body': { en:'Live sessions with per-writer cursors, so no one steps on a verse or loses an idea in a chat.', es:'Sesiones en vivo con cursores por autor, sin pisarse versos ni perder ideas en un chat.' },
+    'feat2.mark': { en:'02 · Traceability', es:'02 · Trazabilidad' },
+    'feat2.title': { en:'Character-level tracking', es:'Seguimiento por carácter' },
+    'feat2.body': { en:"Every word stays attributed to its author. Clear evidence when it's time to split.", es:'Cada palabra queda atribuida a su autor. Evidencia clara cuando llega la hora de repartir.' },
+    'feat3.mark': { en:'03 · Manual splits', es:'03 · Splits manuales' },
+    'feat3.title': { en:'The percentages, yours', es:'Los porcentajes, ustedes' },
+    'feat3.body': { en:'No algorithm decides your split. You negotiate, you adjust, you decide.', es:'Nada de algoritmos decidiendo tu reparto. Ustedes negocian, ustedes ajustan, ustedes deciden.' },
+    'feat4.mark': { en:'04 · Signatures', es:'04 · Firmas' },
+    'feat4.title': { en:'Binding signatures', es:'Firmas vinculantes' },
+    'feat4.body': { en:'Every writer signs their own split sheet with legal validity, just like DocuSign.', es:'Cada autor firma su propio split sheet con validez legal, igual que en DocuSign.' },
+    'feat5.mark': { en:'05 · Versions', es:'05 · Versiones' },
+    'feat5.title': { en:'Full history', es:'Historial completo' },
+    'feat5.body': { en:'Go back to any earlier draft. Nothing gets lost between the idea and the final version.', es:'Vuelve a cualquier borrador anterior. Nada se pierde entre la idea y la versión final.' },
+    'feat6.mark': { en:'06 · Dictionary', es:'06 · Diccionario' },
+    'feat6.title': { en:'Bilingual rhymes', es:'Rimas bilingües' },
+    'feat6.body': { en:"Search rhymes and synonyms in Spanish and English without leaving the lyric you're writing.", es:'Busca rimas y sinónimos en español e inglés sin salir de la letra que estás escribiendo.' },
+
+    'compare.title': { en:'Paper, lawyer, or El Profe', es:'Papel, abogado o El Profe' },
+    'compare.num': { en:'§ 02 — Comparison', es:'§ 02 — Comparación' },
+    'compare.th.sheet': { en:'Loose sheet', es:'Planilla suelta' },
+    'compare.th.lawyer': { en:'Lawyer', es:'Abogado' },
+    'compare.row.cost.label': { en:'Cost', es:'Costo' },
+    'compare.row.cost.sheet': { en:'Free, but no backing', es:'Gratis, pero sin respaldo' },
+    'compare.row.cost.lawyer': { en:'$300 – $1,200 per song', es:'$300 – $1,200 por canción' },
+    'compare.row.cost.profe': { en:'From $0', es:'Desde $0' },
+    'compare.row.time.label': { en:'Time', es:'Tiempo' },
+    'compare.row.time.sheet': { en:'Minutes, no structure', es:'Minutos, sin estructura' },
+    'compare.row.time.lawyer': { en:'Days or weeks', es:'Días o semanas' },
+    'compare.row.time.profe': { en:'Minutes, with structure', es:'Minutos, con estructura' },
+    'compare.row.tracking.label': { en:'Contribution log', es:'Registro de aportes' },
+    'compare.row.tracking.sheet': { en:'No', es:'No' },
+    'compare.row.tracking.lawyer': { en:'Manual', es:'Manual' },
+    'compare.row.tracking.profe': { en:'<span class="tick">Yes</span>, automatic', es:'<span class="tick">Sí</span>, automático' },
+    'compare.row.signature.label': { en:'Binding signature', es:'Firma vinculante' },
+    'compare.row.signature.sheet': { en:'No', es:'No' },
+    'compare.row.signature.lawyer': { en:'<span class="tick">Yes</span>', es:'<span class="tick">Sí</span>' },
+    'compare.row.signature.profe': { en:'<span class="tick">Yes</span>', es:'<span class="tick">Sí</span>' },
+    'compare.row.export.label': { en:'PRO export', es:'Exportación a PRO' },
+    'compare.row.export.sheet': { en:'No', es:'No' },
+    'compare.row.export.lawyer': { en:'Depends on the lawyer', es:'Depende del abogado' },
+    'compare.row.export.profe': { en:'<span class="tick">Yes</span>, ready format', es:'<span class="tick">Sí</span>, formato listo' },
+
+    'pricing.title': { en:'Pricing', es:'Precios' },
+    'pricing.num': { en:'§ 03 — Plans', es:'§ 03 — Planes' },
+    'free.amount': { en:'$0<span>/ forever</span>', es:'$0<span>/ para siempre</span>' },
+    'free.desc': { en:'To try the full flow with your first song.', es:'Para probar el flujo completo con tu primera canción.' },
+    'free.item1': { en:'1 active project', es:'1 proyecto activo' },
+    'free.item2': { en:'Real-time co-writing', es:'Co-escritura en tiempo real' },
+    'free.item3': { en:'Character-level contribution log', es:'Registro de aportes por carácter' },
+    'free.item4': { en:'1 signed split sheet per month', es:'1 split sheet firmado por mes' },
+    'free.cta': { en:'Create free account', es:'Crear cuenta gratis' },
+    'pro.amount': { en:'$19<span>/ month</span>', es:'$19<span>/ mes</span>' },
+    'pro.desc': { en:'For songwriters and teams who release often.', es:'Para compositores y equipos que lanzan seguido.' },
+    'pro.item1': { en:'Unlimited projects', es:'Proyectos ilimitados' },
+    'pro.item2': { en:'Full version history', es:'Historial de versiones completo' },
+    'pro.item3': { en:'Unlimited signatures and exports', es:'Firmas y exportación ilimitadas' },
+    'pro.item4': { en:'Bilingual rhyme dictionary', es:'Diccionario bilingüe de rimas' },
+    'pro.item5': { en:'Priority support', es:'Soporte prioritario' },
+    'pro.cta': { en:'Start Pro', es:'Empezar Pro' },
+
+    'faq.title': { en:'Frequently asked questions', es:'Preguntas frecuentes' },
+    'faq.num': { en:'§ 04 — FAQ', es:'§ 04 — FAQ' },
+    'faq.q1': { en:'Is the split sheet actually legally valid?', es:'¿El split sheet tiene validez legal real?' },
+    'faq.a1': { en:'Yes. Each writer signs with a binding electronic signature, just like DocuSign, and the resulting PDF follows the format accepted by performing rights organizations like ASCAP, BMI, SESAC, and SGAE.', es:'Sí. Cada autor firma con una firma electrónica vinculante, igual que en DocuSign, y el PDF resultante sigue el formato que aceptan sociedades de gestión como ASCAP, BMI, SESAC y SGAE.' },
+    'faq.q2': { en:'Who decides the split percentages?', es:'¿Quién decide los porcentajes del split?' },
+    'faq.a2': { en:'Always the writers. El Profe objectively logs who wrote what, but the final percentage negotiation is up to you, dragging the bar until you reach an agreement.', es:'Siempre los autores. El Profe registra objetivamente quién escribió qué, pero la negociación final del porcentaje la hacen ustedes, arrastrando la barra hasta llegar a un acuerdo.' },
+    'faq.q3': { en:"Can I co-write with someone who doesn't have a Pro account?", es:'¿Puedo co-escribir con alguien que no tiene cuenta Pro?' },
+    'faq.a3': { en:'Yes. Any collaborator can join a session with a free account; only whoever creates the project needs the plan that matches their song volume.', es:'Sí. Cualquier colaborador puede unirse a una sesión con una cuenta gratuita; solo quien crea el proyecto necesita el plan que corresponda al volumen de canciones.' },
+    'faq.q4': { en:'What languages does the rhyme dictionary support?', es:'¿En qué idiomas funciona el diccionario de rimas?' },
+    'faq.a4': { en:'Spanish and English, built for bilingual songwriters who jump between languages within the same song.', es:'Español e inglés, pensado para compositores bilingües que saltan de un idioma a otro dentro de la misma canción.' },
+
+    'cta.eyebrow': { en:'Start today', es:'Empieza hoy' },
+    'cta.title': { en:'Write the song.<br><em>Sign the paper.</em>', es:'Escribe la canción.<br><em>Firmen el papel.</em>' },
+    'cta.lead': { en:"No loose sheets, no lawyers by the hour. Just your music and a split everyone signed off on.", es:'Sin planillas sueltas, sin abogados por hora. Solo tu música y un split que todos firmaron de acuerdo.' },
+
+    'footer.tag': { en:'The studio where songwriters write, log, and sign their splits.', es:'El estudio donde los compositores escriben, registran y firman sus splits.' },
+    'footer.col.product': { en:'Product', es:'Producto' },
+    'footer.col.legal': { en:'Legal', es:'Legal' },
+    'footer.col.company': { en:'Company', es:'Compañía' },
+    'footer.link.terms': { en:'Terms', es:'Términos' },
+    'footer.link.privacy': { en:'Privacy', es:'Privacidad' },
+    'footer.link.template': { en:'Sample split sheet', es:'Split sheet modelo' },
+    'footer.link.about': { en:'About El Profe', es:'Sobre El Profe' },
+    'footer.link.contact': { en:'Contact', es:'Contacto' },
+    'footer.copyright': { en:'© 2026 El Profe. All rights reserved.', es:'© 2026 El Profe. Todos los derechos reservados.' },
+    'footer.variant': { en:'Variant B — editorial mockup · design-b.html', es:'Variante B — maqueta editorial · design-b.html' }
+  };
+
+  const TITLES = {
+    en:'El Profe — Fair splits, signed paper',
+    es:'El Profe — Splits justos, papel firmado'
+  };
+
+  const LANG_KEY = 'elprofe.lang';
+
+  function applyLang(lang){
+    if (lang !== 'en' && lang !== 'es') lang = 'en';
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      const entry = I18N[key];
+      if (entry) el.innerHTML = entry[lang];
+    });
+    document.documentElement.lang = lang;
+    document.title = TITLES[lang];
+    document.querySelectorAll('.lang-toggle button').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
+    });
+    try { localStorage.setItem(LANG_KEY, lang); } catch (e) {}
+  }
+
+  document.querySelectorAll('.lang-toggle button').forEach(btn => {
+    btn.addEventListener('click', () => applyLang(btn.getAttribute('data-lang')));
+  });
+
+  let savedLang = 'en';
+  try { savedLang = localStorage.getItem(LANG_KEY) || 'en'; } catch (e) {}
+  applyLang(savedLang);
+
+  // Headline entrance
+  window.addEventListener('DOMContentLoaded', () => {
+    requestAnimationFrame(() => {
+      document.getElementById('headline').classList.add('play');
+    });
+  });
+
+  // Scroll reveal
+  const revealEls = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in');
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.14, rootMargin: '0px 0px -40px 0px' });
+  revealEls.forEach(el => io.observe(el));
+
+  // FAQ accordion
+  document.querySelectorAll('.faq-item').forEach(item => {
+    const btn = item.querySelector('.faq-q');
+    const answer = item.querySelector('.faq-a');
+    const setHeight = () => {
+      if (item.classList.contains('open')) {
+        answer.style.maxHeight = answer.scrollHeight + 'px';
+      } else {
+        answer.style.maxHeight = '0px';
+      }
+    };
+    setHeight();
+    btn.addEventListener('click', () => {
+      const wasOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item.open').forEach(o => {
+        if (o !== item) { o.classList.remove('open'); o.querySelector('.faq-a').style.maxHeight = '0px'; }
+      });
+      item.classList.toggle('open', !wasOpen);
+      setHeight();
+    });
+    window.addEventListener('resize', () => { if (item.classList.contains('open')) setHeight(); });
+  });
+
+  // Interactive split-sheet demo — percentages always clamp to 0-100 and sum to exactly 100
+  (function(){
+    const bar = document.getElementById('splitBar');
+    const seg1 = document.getElementById('seg1');
+    const seg2 = document.getElementById('seg2');
+    const seg3 = document.getElementById('seg3');
+    const h1 = document.getElementById('handle1');
+    const h2 = document.getElementById('handle2');
+    const totalEl = document.getElementById('splitTotal');
+    let p1 = 45, p2 = 75; // p1 = boundary between seg1/seg2 (%), p2 = boundary between seg2/seg3 (%)
+    let dragging = null;
+
+    function render(){
+      // hard clamp: both boundaries stay within [0,100] and p1 can never exceed p2
+      p1 = Math.max(0, Math.min(100, p1));
+      p2 = Math.max(0, Math.min(100, p2));
+      if (p1 > p2) { const t = p1; p1 = p2; p2 = t; }
+
+      const w1 = p1;
+      const w2 = p2 - p1;
+      const w3 = 100 - p2;
+
+      seg1.style.width = w1 + '%';
+      seg2.style.width = w2 + '%';
+      seg3.style.width = w3 + '%';
+
+      // round each segment, then force the last one to absorb any rounding
+      // remainder so the three numbers always add up to exactly 100 and
+      // never go negative.
+      let r1 = Math.round(w1);
+      let r2 = Math.round(w2);
+      let r3 = 100 - r1 - r2;
+      if (r3 < 0) {
+        // pull the deficit from whichever rounded segment is largest
+        if (r2 >= r1) { r2 += r3; } else { r1 += r3; }
+        r3 = 100 - r1 - r2;
+      }
+
+      seg1.textContent = r1 + '%';
+      seg2.textContent = r2 + '%';
+      seg3.textContent = r3 + '%';
+      h1.style.left = p1 + '%';
+      h2.style.left = p2 + '%';
+
+      if (totalEl) totalEl.textContent = 'Total: ' + (r1 + r2 + r3) + '%';
+    }
+
+    function pctFromEvent(e){
+      const rect = bar.getBoundingClientRect();
+      const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+      if (!rect.width) return 0;
+      return Math.min(100, Math.max(0, (x / rect.width) * 100));
+    }
+
+    function startDrag(handle, e){
+      dragging = handle;
+      e.preventDefault();
+    }
+
+    h1.addEventListener('mousedown', e => startDrag('h1', e));
+    h1.addEventListener('touchstart', e => startDrag('h1', e), {passive:false});
+    h2.addEventListener('mousedown', e => startDrag('h2', e));
+    h2.addEventListener('touchstart', e => startDrag('h2', e), {passive:false});
+
+    window.addEventListener('mousemove', move);
+    window.addEventListener('touchmove', move, {passive:false});
+    window.addEventListener('mouseup', () => dragging = null);
+    window.addEventListener('touchend', () => dragging = null);
+
+    function move(e){
+      if (!dragging) return;
+      e.preventDefault();
+      const pct = pctFromEvent(e);
+      if (dragging === 'h1'){
+        p1 = Math.min(pct, p2);
+      } else {
+        p2 = Math.max(pct, p1);
+      }
+      render();
+    }
+
+    render();
+  })();
+</script>
+
+</body>
+</html>

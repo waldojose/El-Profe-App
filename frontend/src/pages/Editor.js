@@ -17,6 +17,7 @@ import SplitPanel from "../components/SplitPanel";
 import SynonymsPanel from "../components/SynonymsPanel";
 import VersionsPanel from "../components/VersionsPanel";
 import LogoBadge from "../components/LogoBadge";
+import LanguageToggle from "../components/LanguageToggle";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -278,7 +279,7 @@ const Editor = ({ token, user }) => {
       
       {/* Header */}
       <header className="backdrop-studio border-b border-white/10 sticky top-0 z-40">
-        <div className="px-6 py-4 flex justify-between items-center">
+        <div className="px-6 py-4 flex flex-wrap justify-between items-center gap-2">
           <div className="flex items-center gap-4">
             <button
               onClick={() => navigate("/dashboard")}
@@ -303,6 +304,7 @@ const Editor = ({ token, user }) => {
               <Save size={16} />
               {t("editor.save")}
             </button>
+            <LanguageToggle inline />
           </div>
         </div>
       </header>

@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Textarea } from "@/components/ui/textarea";
 import LogoBadge from "../components/LogoBadge";
 import { useI18n } from "../i18n/I18nProvider";
+import LanguageToggle from "../components/LanguageToggle";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -92,7 +93,7 @@ const Network = ({ token, user }) => {
 
       {/* Header */}
       <header className="backdrop-studio border-b border-white/10 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex flex-wrap justify-between items-center gap-2">
           <div className="flex items-center gap-4">
             <button
               onClick={() => navigate("/dashboard")}
@@ -108,14 +109,17 @@ const Network = ({ token, user }) => {
             </div>
           </div>
 
-          <button
-            onClick={() => navigate("/messages")}
-            className="btn-secondary text-sm flex items-center gap-2"
-            data-testid="messages-btn"
-          >
-            <MessageCircle size={16} />
-            {t("net.messagesBtn")}
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate("/messages")}
+              className="btn-secondary text-sm flex items-center gap-2"
+              data-testid="messages-btn"
+            >
+              <MessageCircle size={16} />
+              {t("net.messagesBtn")}
+            </button>
+            <LanguageToggle inline />
+          </div>
         </div>
       </header>
 
